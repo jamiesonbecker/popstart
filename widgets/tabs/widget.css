@@ -1,0 +1,2 @@
+.tab-bar{display:flex;gap:var(--sp-1);margin-bottom:var(--sp-4);flex-wrap:wrap}
+.tab-panel{font-size:var(--fs-sm);color:var(--fg2);line-height:1.7;padding:var(--sp-4);background:var(--code-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);animation:fadeIn var(--speed) var(--ease)}

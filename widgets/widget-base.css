@@ -1,0 +1,58 @@
+/* widget-base.css — Standalone widget page styles.
+   Theme variables match index.html. Widget-specific CSS lives in widget.css. */
+
+:root, [data-theme="darkglass"] {
+  --bg: #0f1114; --bg2: #161920; --bg3: #1c2028;
+  --fg: #e8eaed; --fg2: #9aa0a6; --fg3: #5f6368;
+  --accent: #8ab4f8; --accent-glow: rgba(138,180,248,0.08);
+  --card: rgba(30,34,42,0.65); --card-hover: rgba(30,34,42,0.85);
+  --card-border: rgba(255,255,255,0.06); --contrast: #0f1114;
+  --code-bg: rgba(0,0,0,0.25);
+  --radius: 12px; --radius-sm: 8px;
+  --sp-1:0.25rem;--sp-2:0.5rem;--sp-3:0.75rem;--sp-4:1rem;--sp-5:1.25rem;--sp-6:1.5rem;
+  --fs:14px;--fs-sm:13px;--fs-xs:12px;--fs-2xs:11px;--fs-3xs:10px;
+  --speed:0.2s;--speed-fast:0.12s;
+  --ease:cubic-bezier(0.4,0,0.2,1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);
+}
+[data-theme="lightglass"] {
+  --bg:#f5f5f5;--bg2:#fff;--bg3:#e8eaed;--fg:#1a1a1a;--fg2:#5f6368;--fg3:#9aa0a6;
+  --accent:#1a73e8;--accent-glow:rgba(26,115,232,0.06);
+  --card:rgba(255,255,255,0.8);--card-hover:rgba(255,255,255,0.95);
+  --card-border:rgba(0,0,0,0.08);--contrast:#fff;--code-bg:rgba(0,0,0,0.04);
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+[data-theme="midnight"] {
+  --bg:#0a0e27;--bg2:#111640;--bg3:#1a1f50;--fg:#c8d6e5;--fg2:#8395a7;--fg3:#576574;
+  --accent:#ff6b6b;--accent-glow:rgba(255,107,107,0.08);
+  --card:rgba(17,22,64,0.65);--card-hover:rgba(17,22,64,0.85);
+  --card-border:rgba(255,255,255,0.06);--contrast:#0a0e27;--code-bg:rgba(0,0,0,0.3);
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;font-size:var(--fs);color:var(--fg);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+.btn{padding:var(--sp-2) var(--sp-4);font-size:var(--fs-sm);font-weight:600;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--fg);cursor:pointer;transition:all var(--speed);font-family:inherit}
+.btn:hover{border-color:var(--fg3)}
+.btn.active{background:var(--accent);color:var(--contrast);border-color:var(--accent)}
+a{color:var(--accent);text-decoration:none}
+code{font-family:'JetBrains Mono',monospace;font-size:0.9em}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── Header chrome (injected by loader) ── */
+.wp-header{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:100}
+.wp-back{display:flex;align-items:center;gap:6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;transition:color var(--speed)}
+.wp-back:hover{color:var(--accent)}
+.wp-logo{font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem;color:var(--accent);letter-spacing:-0.02em}
+.wp-btn{padding:4px 10px;font-size:var(--fs-3xs);font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--bg3);color:var(--fg3);border:1px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--speed)}
+.wp-btn:hover{color:var(--fg2);border-color:var(--fg3)}
+.wp-btn.active{background:var(--accent);color:var(--contrast);border-color:var(--accent)}
+
+/* ── Widget content area ── */
+.wp{padding:2rem;max-width:900px;margin:0 auto;transition:max-width 0.3s ease}
+
+/* ── Code editor panel ── */
+.wp-editor{border-top:1px solid var(--card-border);background:var(--bg2)}
+.wp-editor-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--card-border)}
+.wp-textarea{width:100%;min-height:200px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:var(--fs-xs);background:var(--code-bg);color:var(--fg);border:none;resize:vertical;outline:none;tab-size:2;line-height:1.6}

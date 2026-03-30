@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<script src="../widgetsetup.js"></script>
+
+<div class="tab-bar" role="tablist" aria-label="Example tabs">
+  <button class="btn active" role="tab" ps-click="__.switchTo"
+    switchTo-hide=".tab-panel" switchTo-show="#tab-one"
+    switchTo-siblings=".tab-bar .btn" debounce="0">Features</button>
+  <button class="btn" role="tab" ps-click="__.switchTo"
+    switchTo-hide=".tab-panel" switchTo-show="#tab-two"
+    switchTo-siblings=".tab-bar .btn" debounce="0">Speed</button>
+  <button class="btn" role="tab" ps-click="__.switchTo"
+    switchTo-hide=".tab-panel" switchTo-show="#tab-three"
+    switchTo-siblings=".tab-bar .btn" debounce="0">Size</button>
+</div>
+<div class="tab-panel" id="tab-one" role="tabpanel">
+  <p>Event binding, function chains, DOM helpers, HTTP wrappers, form scraping, templating — all from HTML attributes.</p>
+</div>
+<div class="tab-panel hidden" id="tab-two" role="tabpanel">
+  <p>No virtual DOM diffing. No reconciliation. Direct DOM access means updates happen in microseconds.</p>
+</div>
+<div class="tab-panel hidden" id="tab-three" role="tabpanel">
+  <p>Core + extras is ~57KB unminified (~18KB gzipped). Smaller than jQuery minified.</p>
+</div>

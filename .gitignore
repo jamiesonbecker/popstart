@@ -1,0 +1,12 @@
+tmp/
+data/
+/edgecore
+/keygen
+/sshbridge
+*.exe
+*.dll
+*.so
+*.dylib
+.env
+*_privkey.pem
+__pycache__

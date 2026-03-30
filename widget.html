@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="darkglass">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Widget Viewer — Popstart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+// Flash-free theme restore
+(function(){var t=localStorage.getItem('ps-theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
+</script>
+<style>
+/* ═══ THEMES (mirrored from index.html) ═══ */
+:root, [data-theme="darkglass"] {
+  --bg: #0f1114; --bg2: #161920; --bg3: #1c2028;
+  --fg: #e8e4df; --fg2: #9a9590; --fg3: #5a5550;
+  --accent: #e08a4a; --accent2: #f0a060; --accent-glow: #e08a4a30;
+  --card: rgba(255,255,255,0.06); --card-border: rgba(255,255,255,0.10); --card-hover: rgba(255,255,255,0.09);
+  --code-bg: #0c0e12;
+  --success: #3cb88a; --error: #e8465a; --warning: #e8b84a; --info: #5aaddd;
+  --contrast: #fff;
+  --overlay: rgba(0,0,0,0.5); --overlay-heavy: rgba(0,0,0,0.75);
+  --glass: rgba(15,17,20,0.8);
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.4);
+  --radius: 8px; --radius-sm: 6px; --radius-xs: 4px; --radius-pill: 20px;
+  --fs: 15px; --fs-sm: 13px; --fs-xs: 12px; --fs-2xs: 11px; --fs-3xs: 10px;
+  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem; --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem;
+  --ease: cubic-bezier(0.4,0,0.2,1); --speed: 0.2s; --speed-fast: 0.15s;
+}
+[data-theme="lightglass"] {
+  --bg: #f0f2f5; --bg2: #e8eaef; --bg3: #dfe1e6;
+  --fg: #1a1a2e; --fg2: #6b6580; --fg3: #a098b0;
+  --accent: #c06020; --accent2: #d47838; --accent-glow: #c0602020;
+  --card: rgba(255,255,255,0.6); --card-border: rgba(0,0,0,0.08); --card-hover: rgba(255,255,255,0.75);
+  --code-bg: #e4e6eb; --glass: rgba(240,242,245,0.85);
+  --contrast: #fff;
+  --success: #1a8a5a; --error: #c43048; --warning: #a06010; --info: #2878b8;
+  --overlay: rgba(0,0,0,0.35); --overlay-heavy: rgba(0,0,0,0.6);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+}
+[data-theme="midnight"] {
+  --bg: #080a1a; --bg2: #0e1028; --bg3: #161a38;
+  --fg: #c8d0f0; --fg2: #6670a0; --fg3: #3a4070;
+  --accent: #6e8eff; --accent2: #90a8ff; --accent-glow: #6e8eff30;
+  --card: #10132aee; --card-border: #1e2248; --card-hover: #161a38;
+  --code-bg: #0a0d20; --glass: rgba(8,10,26,0.85);
+  --contrast: #fff;
+  --success: #4ac8a0; --error: #f06878; --warning: #e8c060; --info: #6eaaff;
+  --overlay: rgba(0,0,0,0.5); --overlay-heavy: rgba(0,0,0,0.8);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* ═══ BASE ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scrollbar-color:var(--accent) var(--bg2)}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  font-size:var(--fs); line-height:1.7;
+  color:var(--fg); background:var(--bg);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:var(--contrast)}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent2)}
+h1,h2,h3,h4{font-family:'Outfit',system-ui,sans-serif;font-weight:700;letter-spacing:-0.02em;color:var(--fg)}
+code,.snippet,pre{font-family:'JetBrains Mono',monospace}
+.hidden{display:none!important}
+
+/* ═══ HEADER ═══ */
+.wv-header{
+  position:sticky;top:0;z-index:100;
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);
+  border-bottom:1px solid var(--card-border);
+  padding:0 2rem;display:flex;align-items:center;gap:var(--sp-4);
+  height:3.5rem;
+}
+.wv-back{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  color:var(--fg2);font-size:var(--fs-sm);font-weight:500;
+  transition:color var(--speed);white-space:nowrap;
+}
+.wv-back:hover{color:var(--accent)}
+.wv-back svg{width:16px;height:16px;flex-shrink:0}
+.wv-title{
+  font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;
+  color:var(--fg);letter-spacing:-0.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.wv-title span{color:var(--accent);font-weight:800}
+.wv-header-right{margin-left:auto;display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0}
+.wv-logo{
+  font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;
+  color:var(--accent);letter-spacing:-0.03em;
+}
+
+/* ═══ MAIN LAYOUT ═══ */
+.wv-main{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* ═══ DEMO AREA ═══ */
+.wv-demo{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:2rem;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  margin-bottom:var(--sp-6);
+  position:relative;overflow:visible;
+  min-height:80px;
+}
+.wv-demo-label{
+  position:absolute;top:-9px;left:16px;
+  background:var(--bg);padding:0 8px;
+  font-size:var(--fs-3xs);font-weight:600;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--fg3);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══ TABBED EDITOR ═══ */
+.wv-editor{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);overflow:hidden;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  margin-bottom:var(--sp-6);
+}
+.wv-tab-bar{
+  display:flex;align-items:center;
+  background:var(--code-bg);
+  border-bottom:1px solid var(--card-border);
+  padding:0 var(--sp-3);
+  gap:0;flex-wrap:wrap;
+}
+.wv-tab{
+  padding:0.6rem 1.2rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:var(--fs-2xs);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--fg3);background:transparent;
+  border:none;border-bottom:2px solid transparent;
+  cursor:pointer;transition:all var(--speed-fast);
+}
+.wv-tab:hover{color:var(--fg2)}
+.wv-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.wv-tab-actions{margin-left:auto;display:flex;gap:var(--sp-2);padding:var(--sp-2) 0}
+
+.wv-editor-panel{display:none}
+.wv-editor-panel.active{display:block}
+
+.wv-textarea{
+  width:100%;min-height:260px;max-height:600px;
+  background:var(--code-bg);color:var(--fg);
+  border:none;border-radius:0;
+  font-family:'JetBrains Mono',monospace;font-size:var(--fs-xs);
+  padding:1rem 1.25rem;line-height:1.65;tab-size:2;
+  resize:vertical;box-sizing:border-box;
+  transition:box-shadow var(--speed-fast);
+}
+.wv-textarea:focus{outline:none;box-shadow:inset 0 0 0 1px var(--accent-glow)}
+.wv-textarea::placeholder{color:var(--fg3);font-style:italic}
+
+/* ═══ BUTTONS (pill) ═══ */
+.wv-btn{
+  display:inline-flex;align-items:center;gap:0.35rem;
+  padding:0.35rem 1rem;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:var(--fs-xs);font-weight:600;
+  border:1px solid var(--card-border);border-radius:var(--radius-pill);
+  background:var(--bg3);color:var(--fg);
+  cursor:pointer;transition:all var(--speed);
+  white-space:nowrap;
+}
+.wv-btn:hover{border-color:var(--accent);color:var(--accent)}
+.wv-btn:active{transform:scale(0.97)}
+.wv-btn.accent{background:var(--accent);color:var(--contrast);border-color:var(--accent)}
+.wv-btn.accent:hover{background:var(--accent2)}
+.wv-btn.success{background:var(--success);color:var(--contrast);border-color:var(--success)}
+.wv-btn.success:hover{filter:brightness(1.1)}
+.wv-btn .icon{font-size:14px;line-height:1}
+
+/* ═══ PREVIEW AREA ═══ */
+.wv-preview{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:2rem;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  position:relative;overflow:visible;
+  min-height:80px;
+}
+.wv-preview-label{
+  position:absolute;top:-9px;left:16px;
+  background:var(--bg);padding:0 8px;
+  font-size:var(--fs-3xs);font-weight:600;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--fg3);
+  font-family:'JetBrains Mono',monospace;
+}
+.wv-preview.flash{animation:previewFlash 0.6s ease-out}
+@keyframes previewFlash{0%{box-shadow:0 0 0 3px var(--success)}100%{box-shadow:0 0 0 0 transparent}}
+.wv-viewport-bar{display:flex;gap:4px;margin-bottom:var(--sp-4)}
+.wv-vp-btn{padding:3px 10px;font-size:var(--fs-3xs);font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--bg3);color:var(--fg3);border:1px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--speed)}
+.wv-vp-btn:hover{color:var(--fg2);border-color:var(--fg3)}
+.wv-vp-btn.active{background:var(--accent);color:var(--contrast);border-color:var(--accent)}
+#wv-preview-content,#wv-demo-content{transition:max-width 0.3s ease}
+#wv-preview-content.vp-tablet,#wv-demo-content.vp-tablet{max-width:768px;margin:0 auto;border-left:1px dashed var(--card-border);border-right:1px dashed var(--card-border);padding-left:var(--sp-4);padding-right:var(--sp-4)}
+#wv-preview-content.vp-mobile,#wv-demo-content.vp-mobile{max-width:375px;margin:0 auto;border-left:1px dashed var(--card-border);border-right:1px dashed var(--card-border);padding-left:var(--sp-3);padding-right:var(--sp-3)}
+@media(max-width:600px){.wv-viewport-bar{display:none}}
+
+/* ═══ LOADING / ERROR STATES ═══ */
+.wv-loading{
+  text-align:center;padding:4rem 2rem;color:var(--fg3);
+  font-size:var(--fs-sm);
+}
+.wv-loading::before{
+  content:'';display:block;width:32px;height:32px;
+  border:3px solid var(--card-border);border-top-color:var(--accent);
+  border-radius:50%;margin:0 auto 1rem;
+  animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wv-error{
+  text-align:center;padding:3rem 2rem;color:var(--error);
+  font-size:var(--fs-sm);
+}
+.wv-error-detail{
+  margin-top:0.5rem;color:var(--fg3);font-size:var(--fs-xs);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══ WIDGET LIST MODE ═══ */
+.wv-list-header{
+  text-align:center;padding:3rem 2rem 2rem;position:relative;
+}
+.wv-list-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,var(--accent-glow),transparent);
+  pointer-events:none;
+}
+.wv-list-header h1{
+  font-size:clamp(1.8rem,5vw,2.8rem);margin-bottom:0.4rem;font-weight:800;
+}
+.wv-list-header h1 span{color:var(--accent)}
+.wv-list-header p{color:var(--fg2);font-size:var(--fs);max-width:500px;margin:0 auto}
+
+.wv-search-wrap{
+  max-width:480px;margin:1.5rem auto 2rem;position:relative;
+}
+.wv-search{
+  width:100%;padding:0.65rem 1rem 0.65rem 2.6rem;
+  background:var(--code-bg);color:var(--fg);
+  border:1px solid var(--card-border);border-radius:var(--radius-pill);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:var(--fs);
+  outline:none;transition:border-color var(--speed);
+}
+.wv-search:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
+.wv-search::placeholder{color:var(--fg3)}
+.wv-search-icon{
+  position:absolute;left:1rem;top:50%;transform:translateY(-50%);
+  color:var(--fg3);pointer-events:none;
+}
+.wv-search-icon svg{width:16px;height:16px;display:block}
+
+.wv-cat-nav{
+  display:flex;gap:var(--sp-2);flex-wrap:wrap;justify-content:center;
+  margin-bottom:2rem;max-width:700px;margin-left:auto;margin-right:auto;
+  padding:0 1rem;
+}
+.wv-cat-btn{
+  font-size:var(--fs-xs);padding:0.3rem 0.85rem;
+  border-radius:var(--radius-pill);border:1px solid var(--card-border);
+  color:var(--fg2);font-weight:500;background:transparent;
+  cursor:pointer;transition:all var(--speed);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.wv-cat-btn:hover,.wv-cat-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+.wv-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:var(--sp-4);max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;
+}
+.wv-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:1.25rem;
+  cursor:pointer;transition:all var(--speed);
+  text-decoration:none;display:block;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.wv-card:hover{
+  border-color:color-mix(in srgb,var(--accent) 40%,transparent);
+  background:var(--card-hover);box-shadow:var(--shadow);
+  transform:translateY(-2px);
+}
+.wv-card-name{
+  font-family:'Outfit',sans-serif;font-size:var(--fs);font-weight:700;
+  color:var(--fg);margin-bottom:0.2rem;letter-spacing:-0.01em;
+}
+.wv-card-cat{
+  font-size:var(--fs-2xs);color:var(--fg3);font-weight:500;
+  text-transform:capitalize;
+}
+.wv-card-sub{
+  font-size:var(--fs-xs);color:var(--fg2);margin-top:0.4rem;
+  line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.wv-no-results{
+  grid-column:1/-1;text-align:center;padding:3rem;color:var(--fg3);font-size:var(--fs-sm);
+}
+.wv-count{
+  text-align:center;margin-bottom:1.5rem;color:var(--fg3);font-size:var(--fs-xs);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){
+  .wv-header{padding:0 1rem;gap:var(--sp-2);height:3rem}
+  .wv-back{font-size:var(--fs-xs)}
+  .wv-title{font-size:15px}
+  .wv-logo{font-size:13px}
+  .wv-main{padding:1.25rem 0.75rem 3rem}
+  .wv-demo{padding:1.25rem}
+  .wv-textarea{min-height:180px;font-size:var(--fs-2xs);padding:0.75rem}
+  .wv-tab-bar{padding:0 var(--sp-2)}
+  .wv-tab{padding:0.45rem 0.7rem;font-size:var(--fs-3xs)}
+  .wv-tab-actions{gap:var(--sp-1);margin-left:0;width:100%;justify-content:flex-end;padding-bottom:var(--sp-2)}
+  .wv-btn{font-size:var(--fs-2xs);padding:0.3rem 0.65rem}
+  .wv-preview{padding:1.25rem}
+  .wv-grid{grid-template-columns:1fr;padding:0 0.75rem 3rem}
+  .wv-list-header{padding:2rem 1rem 1.5rem}
+  .wv-cat-nav{gap:var(--sp-1)}
+  .wv-cat-btn{font-size:var(--fs-2xs);padding:0.25rem 0.65rem}
+}
+@media(min-width:601px) and (max-width:900px){
+  .wv-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="wv-header">
+  <a href="index.html#widgets" class="wv-back" id="wv-back" onclick="if(document.referrer&&history.length>1){event.preventDefault();history.back()}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to Widgets
+  </a>
+  <span class="wv-title" id="wv-title"></span>
+  <div class="wv-header-right">
+    <button class="wv-btn" onclick="cycleTheme()" title="Switch theme" style="padding:0.35rem 0.6rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <span class="wv-logo">Popstart</span>
+  </div>
+</header>
+
+<!-- ═══ WIDGET VIEW (single widget mode) ═══ -->
+<div id="wv-widget-view" class="hidden">
+  <div class="wv-main">
+
+    <!-- Live Demo -->
+    <div class="wv-demo" id="wv-demo">
+      <span class="wv-demo-label">Live Demo</span>
+      <div class="wv-viewport-bar">
+        <button class="wv-vp-btn active" data-vp="full" onclick="setDemoViewport(this)" title="Full width">Full</button>
+        <button class="wv-vp-btn" data-vp="tablet" onclick="setDemoViewport(this)" title="768px">Tablet</button>
+        <button class="wv-vp-btn" data-vp="mobile" onclick="setDemoViewport(this)" title="375px">Mobile</button>
+      </div>
+      <div id="wv-demo-content"></div>
+    </div>
+
+    <!-- Tabbed Code Editor -->
+    <div class="wv-editor">
+      <div class="wv-tab-bar">
+        <button class="wv-tab active" data-panel="html" onclick="switchTab(this)">HTML</button>
+        <button class="wv-tab" data-panel="css" onclick="switchTab(this)">CSS</button>
+        <button class="wv-tab" data-panel="js" onclick="switchTab(this)">JS</button>
+        <div class="wv-tab-actions">
+          <button class="wv-btn success" onclick="runCode()" title="Render edited code into preview"><span class="icon">&#9654;</span> Run</button>
+          <button class="wv-btn" id="wv-copy-btn" onclick="copyAll()" title="Copy HTML (relative script paths)"><span class="icon">&#128203;</span> Copy</button>
+          <button class="wv-btn accent" id="wv-export-btn" onclick="exportStandalone()" title="Copy with library JS inlined — works anywhere"><span class="icon">&#128230;</span> Export</button>
+          <button class="wv-btn" onclick="downloadFile()" title="Download as standalone HTML file"><span class="icon">&#8595;</span> Download</button>
+        </div>
+      </div>
+      <div class="wv-editor-panel active" id="panel-html">
+        <textarea class="wv-textarea" id="ta-html" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Widget HTML..."></textarea>
+      </div>
+      <div class="wv-editor-panel" id="panel-css">
+        <textarea class="wv-textarea" id="ta-css" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Widget CSS..."></textarea>
+      </div>
+      <div class="wv-editor-panel" id="panel-js">
+        <textarea class="wv-textarea" id="ta-js" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Widget JavaScript..."></textarea>
+      </div>
+    </div>
+
+    <!-- Live Preview (from edited code) -->
+    <div class="wv-preview" id="wv-preview">
+      <span class="wv-preview-label">Preview</span>
+      <div class="wv-viewport-bar" id="wv-viewport-bar">
+        <button class="wv-vp-btn active" data-vp="full" onclick="setViewport(this)" title="Full width">Full</button>
+        <button class="wv-vp-btn" data-vp="tablet" onclick="setViewport(this)" title="768px">Tablet</button>
+        <button class="wv-vp-btn" data-vp="mobile" onclick="setViewport(this)" title="375px">Mobile</button>
+      </div>
+      <div id="wv-preview-content">
+        <span style="color:var(--fg3);font-size:var(--fs-xs)">Click "Run" to render your edited code here.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ WIDGET LIST (no ?w= mode) ═══ -->
+<div id="wv-list-view" class="hidden">
+  <div class="wv-list-header">
+    <h1>All <span>Widgets</span></h1>
+    <p>Browse every Popstart widget demo. Click any card to open the full-page viewer and code editor.</p>
+  </div>
+  <div class="wv-search-wrap">
+    <span class="wv-search-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input type="text" class="wv-search" id="wv-search" placeholder="Search widgets..." oninput="wvFilterList()">
+  </div>
+  <div id="wv-cat-nav" class="wv-cat-nav"></div>
+  <div id="wv-count" class="wv-count"></div>
+  <div id="wv-grid" class="wv-grid"></div>
+</div>
+
+<!-- ═══ INITIAL LOADING ═══ -->
+<div id="wv-loading" class="wv-loading">Loading widgets...</div>
+
+<!-- Popstart -->
+<script src="popstart-core.js"></script>
+<script src="popstart-extras.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ── State ──
+  var widgetName = new URLSearchParams(location.search).get('w') || '';
+  var allWidgets = [];  // [{name, cat, label, sub, el}]
+  var activeCat  = 'all';
+  var indexDoc   = null;
+  var indexStyles = '';
+  var libCoreJs  = '';  // popstart-core.js contents (for standalone export)
+  var libExtrasJs = ''; // popstart-extras.js contents
+  var indexScriptsJoined = ''; // stored for re-eval after widget injection
+  var indexScriptBlocks = [];  // individual script blocks for per-block eval
+
+  // Pre-fetch library JS for standalone export
+  Promise.all([
+    fetch('popstart-core.js').then(function(r) { return r.ok ? r.text() : ''; }),
+    fetch('popstart-extras.js').then(function(r) { return r.ok ? r.text() : ''; })
+  ]).then(function(results) {
+    libCoreJs = results[0];
+    libExtrasJs = results[1];
+  }).catch(function() { /* non-fatal — standalone will fall back to relative paths */ });
+
+  // ── DOM refs ──
+  var $loading    = document.getElementById('wv-loading');
+  var $widgetView = document.getElementById('wv-widget-view');
+  var $listView   = document.getElementById('wv-list-view');
+  var $title      = document.getElementById('wv-title');
+  var $demo       = document.getElementById('wv-demo-content');
+  var $previewBox = document.getElementById('wv-preview');
+  var $preview    = document.getElementById('wv-preview-content');
+  var $taHtml     = document.getElementById('ta-html');
+  var $taCss      = document.getElementById('ta-css');
+  var $taJs       = document.getElementById('ta-js');
+
+  // ── Tab key support for all textareas ──
+  document.querySelectorAll('.wv-textarea').forEach(function(ta) {
+    ta.addEventListener('keydown', handleTextareaKeys);
+  });
+
+  function handleTextareaKeys(e) {
+    var ta    = this;
+    var start = ta.selectionStart;
+    var end   = ta.selectionEnd;
+    var val   = ta.value;
+
+    if (e.key === 'Tab' && !e.shiftKey) {
+      // Insert indent or indent selection
+      e.preventDefault();
+      if (start === end) {
+        ta.value = val.substring(0, start) + '  ' + val.substring(end);
+        ta.selectionStart = ta.selectionEnd = start + 2;
+      } else {
+        var before    = val.substring(0, start);
+        var lineStart = before.lastIndexOf('\n') + 1;
+        var block     = val.substring(lineStart, end);
+        var after     = val.substring(end);
+        var indented  = block.replace(/^/gm, '  ');
+        ta.value = val.substring(0, lineStart) + indented + after;
+        ta.selectionStart = lineStart;
+        ta.selectionEnd   = lineStart + indented.length;
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      // Dedent selection
+      e.preventDefault();
+      var before2    = val.substring(0, start);
+      var lineStart2 = before2.lastIndexOf('\n') + 1;
+      var block2     = val.substring(lineStart2, end);
+      var after2     = val.substring(end);
+      var dedented   = block2.replace(/^ {1,2}/gm, '');
+      ta.value = val.substring(0, lineStart2) + dedented + after2;
+      ta.selectionStart = lineStart2;
+      ta.selectionEnd   = lineStart2 + dedented.length;
+    } else if (e.key === 'Enter') {
+      // Auto-indent: match leading whitespace of current line
+      e.preventDefault();
+      var linesBefore = val.substring(0, start).split('\n');
+      var currentLine = linesBefore[linesBefore.length - 1];
+      var indent      = (currentLine.match(/^(\s*)/) || ['', ''])[1];
+      ta.value = val.substring(0, start) + '\n' + indent + val.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + 1 + indent.length;
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // FETCH AND PARSE INDEX.HTML
+  // ══════════════════════════════════════════
+  fetch('index.html')
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(html) {
+      var parser = new DOMParser();
+      indexDoc = parser.parseFromString(html, 'text/html');
+
+      // Extract all <style> blocks from index.html so demos render correctly
+      var styles = indexDoc.querySelectorAll('style');
+      var cssTexts = [];
+      styles.forEach(function(s) { cssTexts.push(s.textContent); });
+      indexStyles = cssTexts.join('\n');
+
+      // Inject index styles into this page for the live demo area
+      var styleEl = document.createElement('style');
+      styleEl.id = 'wv-index-styles';
+      styleEl.textContent = indexStyles;
+      document.head.appendChild(styleEl);
+
+      // Extract ALL inline <script> tags from index.html
+      // Run them now for function defs, store for re-eval after widget injection
+      var scripts = indexDoc.querySelectorAll('script');
+      indexScriptBlocks = [];
+      scripts.forEach(function(s) {
+        if (!s.src && s.textContent.trim()) indexScriptBlocks.push(s.textContent);
+      });
+      indexScriptsJoined = indexScriptBlocks.length ? indexScriptBlocks.join('\n;\n') : '';
+      // Eval each script block separately so one failure doesn't block the rest
+      indexScriptBlocks.forEach(function(block) {
+        try { (0, eval)(block); } catch(e) {
+          console.warn('widget.html: eval error:', e.message);
+        }
+      });
+
+      // Collect all widget cards (scoped to grid sections, skip hero cards)
+      indexDoc.querySelectorAll('#widget-grid .card[data-widget][data-cat], #widget-grid-2 .card[data-widget][data-cat]').forEach(function(card) {
+        var name = card.dataset.widget;
+        var cat  = card.dataset.cat;
+        var h3   = card.querySelector('h3');
+        var sub  = card.querySelector('.sub');
+        allWidgets.push({
+          name:  name,
+          cat:   cat,
+          label: h3 ? h3.textContent.replace(/zero JS/g, '').trim() : name,
+          sub:   sub ? sub.textContent.trim() : '',
+          el:    card
+        });
+      });
+
+      $loading.classList.add('hidden');
+
+      if (widgetName) {
+        showWidget(widgetName);
+      } else {
+        showList();
+      }
+    })
+    .catch(function(err) {
+      $loading.innerHTML =
+        '<div class="wv-error">Failed to load index.html' +
+        '<div class="wv-error-detail">' + escapeHtml(err.message) + '</div>' +
+        '<div class="wv-error-detail" style="margin-top:1rem">' +
+        '<a href="index.html">Go to main page</a></div></div>';
+    });
+
+  // ══════════════════════════════════════════
+  // SINGLE WIDGET MODE
+  // ══════════════════════════════════════════
+  function showWidget(wid) {
+    var widget = allWidgets.find(function(w) { return w.name === wid; });
+    if (!widget) {
+      $loading.classList.remove('hidden');
+      $loading.innerHTML =
+        '<div class="wv-error">Widget "' + escapeHtml(wid) + '" not found.' +
+        '<div class="wv-error-detail"><a href="widget.html">Browse all widgets</a></div></div>';
+      return;
+    }
+
+    var card = widget.el;
+    document.title = widget.label + ' \u2014 Popstart Widget Viewer';
+    $title.innerHTML = '<span>' + escapeHtml(widget.label) + '</span>';
+
+    // ── Extract demo HTML (preserve wrapper div for ID-scoped selectors) ──
+    var demoDiv  = card.querySelector('[id$="-demo"]');
+    var demoHtml = demoDiv ? demoDiv.outerHTML : stripSourceAndHead(card);
+
+    // ── Extract source code from the source tab ──
+    var srcDiv   = card.querySelector('[id$="-src"]');
+    var htmlCode = '', cssCode = '', jsCode = '';
+
+    if (srcDiv) {
+      var srcBlocks = srcDiv.querySelectorAll('.src-block');
+      srcBlocks.forEach(function(block) {
+        var labelEl = block.querySelector('.src-label');
+        var codeEl  = block.querySelector('pre');
+        if (!labelEl || !codeEl) return;
+        var label = labelEl.textContent.trim().toLowerCase();
+        var text  = codeEl.textContent;
+        if (label === 'html')                              htmlCode = text;
+        else if (label === 'css')                          cssCode  = text;
+        else if (label === 'javascript' || label === 'js') jsCode   = text;
+      });
+    }
+
+    // Fallback: if no source tab, derive from the demo itself
+    if (!htmlCode && demoDiv) {
+      htmlCode = cleanDemoHtml(demoDiv);
+    }
+
+    // CSS extraction priority:
+    // 1. Curated CSS from .src-block (already handled above — best quality)
+    // 2. Marker-based extraction from index.html global styles
+    if (!cssCode && indexStyles) {
+      cssCode = extractWidgetCss(widget.name, indexStyles);
+    }
+    // 3. <style> tags inside the card element
+    if (!cssCode) {
+      var cardStyles = card.querySelectorAll('style');
+      if (cardStyles.length) {
+        var parts = [];
+        cardStyles.forEach(function(s) { parts.push(s.textContent.trim()); });
+        cssCode = parts.join('\n\n');
+      }
+    }
+
+    // Extract any <script> tags within the card
+    if (!jsCode) {
+      var cardScripts = card.querySelectorAll('script');
+      if (cardScripts.length) {
+        var parts2 = [];
+        cardScripts.forEach(function(s) {
+          if (s.textContent.trim()) parts2.push(s.textContent.trim());
+        });
+        jsCode = parts2.join('\n\n');
+      }
+    }
+
+    // Populate editor tabs
+    $taHtml.value = htmlCode || '<!-- No HTML source available -->';
+    $taCss.value  = cssCode  || '/* No widget-specific CSS \u2014 uses global styles */';
+    $taJs.value   = jsCode   || '// No widget-specific JavaScript';
+
+    // Auto-size textareas to fit content
+    autoSizeTextarea($taHtml);
+    autoSizeTextarea($taCss);
+    autoSizeTextarea($taJs);
+
+    // Render live demo
+    $demo.innerHTML = demoHtml;
+
+    // Re-execute any inline scripts from the demo so they run in this page context
+    reactivateScripts($demo);
+
+    // Bind Popstart events on the demo content
+    try { __.Popstart(); } catch(e) { /* non-fatal */ }
+
+    // Re-eval index.html scripts so IIFEs can find newly-injected DOM elements
+    // (scrollspy, OTP, file upload, range slider, etc. depend on this)
+    // Eval each block separately so one failure doesn't block the rest
+    indexScriptBlocks.forEach(function(block) {
+      try { (0, eval)(block); } catch(e) { /* non-fatal */ }
+    });
+
+    $widgetView.classList.remove('hidden');
+  }
+
+  /** Extract CSS for a specific widget using @widget/@end markers in index.html styles */
+  function extractWidgetCss(widgetName, fullCss) {
+    var marker = '/* @widget: ' + widgetName + ' */';
+    var endMarker = '/* @end: ' + widgetName + ' */';
+    var start = fullCss.indexOf(marker);
+    if (start === -1) return '';
+    start += marker.length;
+    var end = fullCss.indexOf(endMarker, start);
+    if (end === -1) end = fullCss.length;
+    var css = fullCss.substring(start, end).trim();
+    // Strip .card[data-widget="..."] prefixes to make CSS portable
+    css = css.replace(/\.card\[data-widget="[^"]*"\]\s*/g, '');
+    css = css.replace(/\[data-widget="[^"]*"\]\s*/g, '');
+    return css;
+  }
+
+  /** Strip the card-head and source div, returning just demo content HTML */
+  function stripSourceAndHead(card) {
+    var clone = card.cloneNode(true);
+    var head = clone.querySelector('.card-head');
+    if (head) head.remove();
+    var src = clone.querySelector('[id$="-src"]');
+    if (src) src.remove();
+    return clone.innerHTML.trim();
+  }
+
+  function cleanDemoHtml(el) {
+    var clone = el.cloneNode(true);
+    clone.querySelectorAll('[id$="-src"]').forEach(function(s) { s.remove(); });
+    return clone.innerHTML.trim();
+  }
+
+  /** Re-execute <script> tags inside an element (DOMParser scripts don't run) */
+  function reactivateScripts(container) {
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(old) {
+      var s = document.createElement('script');
+      if (old.src) {
+        s.src = old.src;
+      } else {
+        s.textContent = old.textContent;
+      }
+      old.parentNode.replaceChild(s, old);
+    });
+  }
+
+  function autoSizeTextarea(ta) {
+    var lines = (ta.value || '').split('\n').length;
+    ta.style.minHeight = Math.min(Math.max(lines * 1.5 + 2, 8), 30) + 'em';
+  }
+
+  // ══════════════════════════════════════════
+  // TAB SWITCHING
+  // ══════════════════════════════════════════
+  window.switchTab = function(btn) {
+    var panel = btn.dataset.panel;
+    document.querySelectorAll('.wv-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.wv-editor-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var target = document.getElementById('panel-' + panel);
+    if (target) target.classList.add('active');
+  };
+
+  // ══════════════════════════════════════════
+  // RUN CODE
+  // ══════════════════════════════════════════
+  window.runCode = function() {
+    var html = $taHtml.value;
+    var css  = $taCss.value;
+    var js   = $taJs.value;
+
+    // Clear preview
+    $preview.innerHTML = '';
+
+    // Remove previous preview-scoped styles
+    var old = document.getElementById('wv-preview-style');
+    if (old) old.remove();
+
+    // Inject CSS scoped to the preview container
+    if (css && css.trim() && !css.trim().startsWith('/* No widget-specific')) {
+      var scopedCss = scopeCssRules(css, '#wv-preview-content');
+      var sEl = document.createElement('style');
+      sEl.id = 'wv-preview-style';
+      sEl.textContent = scopedCss;
+      document.head.appendChild(sEl);
+    }
+
+    // Inject HTML
+    try {
+      $preview.innerHTML = html;
+    } catch(err) {
+      $preview.innerHTML =
+        '<div style="color:var(--error);font-family:JetBrains Mono,monospace;font-size:12px">' +
+        'HTML Error: ' + escapeHtml(err.message) + '</div>';
+      return;
+    }
+
+    // Re-execute scripts that were injected as HTML
+    reactivateScripts($preview);
+
+    // Execute the JS tab code in global scope so it can access helpers
+    if (js && js.trim() && !js.trim().startsWith('// No widget-specific') && !js.trim().startsWith('// zero')) {
+      try {
+        (0, eval)(js);
+      } catch(err) {
+        var errDiv = document.createElement('div');
+        errDiv.style.cssText = 'color:var(--error);font-family:JetBrains Mono,monospace;font-size:12px;' +
+          'margin-top:1rem;padding:0.75rem;border:1px solid var(--error);border-radius:4px;background:rgba(232,70,90,0.08)';
+        errDiv.textContent = 'JS Error: ' + err.message;
+        $preview.appendChild(errDiv);
+      }
+    }
+
+    // Rebind Popstart events on the new preview content
+    try { __.Popstart(); } catch(e) { /* non-fatal */ }
+
+    // Flash success animation
+    $previewBox.classList.remove('flash');
+    void $previewBox.offsetWidth; // force reflow
+    $previewBox.classList.add('flash');
+  };
+
+  // ══════════════════════════════════════════
+  // COPY ALL (standalone file)
+  // ══════════════════════════════════════════
+  window.copyAll = function() {
+    var content = buildStandaloneFile();
+    var btn = document.getElementById('wv-copy-btn');
+    navigator.clipboard.writeText(content).then(function() {
+      if (btn) flashButton(btn, '<span class="icon">&#10003;</span> Copied!');
+    }).catch(function() {
+      // Fallback for insecure contexts
+      var ta = document.createElement('textarea');
+      ta.value = content;
+      ta.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      if (btn) flashButton(btn, '<span class="icon">&#10003;</span> Copied!');
+    });
+  };
+
+  function flashButton(btn, msg) {
+    var orig = btn.innerHTML;
+    btn.innerHTML = msg;
+    setTimeout(function() { btn.innerHTML = orig; }, 1500);
+  }
+
+  // ══════════════════════════════════════════
+  // DOWNLOAD
+  // ══════════════════════════════════════════
+  window.exportStandalone = function() {
+    var content = buildStandaloneFile(true);
+    var btn = document.getElementById('wv-export-btn');
+    navigator.clipboard.writeText(content).then(function() {
+      if (btn) flashButton(btn, '<span class="icon">&#10003;</span> Copied!');
+    }).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = content;
+      ta.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      if (btn) flashButton(btn, '<span class="icon">&#10003;</span> Copied!');
+    });
+  };
+
+  window.downloadFile = function() {
+    var content = buildStandaloneFile(true);
+    var blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = (widgetName || 'widget') + '.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  window.buildStandaloneFile = buildStandaloneFile;
+  function buildStandaloneFile(inline) {
+    var html  = $taHtml.value || '';
+    var css   = $taCss.value  || '';
+    var js    = $taJs.value   || '';
+    var label = widgetName
+      ? widgetName.charAt(0).toUpperCase() + widgetName.slice(1) + ' Widget'
+      : 'Popstart Widget';
+
+    var hasCss = css.trim() && !css.trim().startsWith('/* No widget-specific');
+    var hasJs  = js.trim() && !js.trim().startsWith('// No widget-specific') && !js.trim().startsWith('// zero');
+
+    var out = '<!DOCTYPE html>\n<html lang="en">\n<head>\n';
+    out += '<meta charset="utf-8">\n';
+    out += '<meta name="viewport" content="width=device-width,initial-scale=1">\n';
+    out += '<title>' + escapeHtml(label) + '</title>\n';
+    // Escape closing script tags in JS content so the browser doesn't close the tag early
+    var closeTag = new RegExp('</' + 'script', 'gi');
+    if (inline && (libCoreJs || libExtrasJs)) {
+      // Inline the full library so the file works standalone anywhere
+      var safeCore = libCoreJs ? libCoreJs.replace(closeTag, '<\\/' + 'script') : '';
+      var safeExtras = libExtrasJs ? libExtrasJs.replace(closeTag, '<\\/' + 'script') : '';
+      if (safeCore) out += '<script>\n' + safeCore + '\n<\/script>\n';
+      if (safeExtras) out += '<script>\n' + safeExtras + '\n<\/script>\n';
+    } else {
+      out += '<script src="popstart-core.js"><\/script>\n';
+      out += '<script src="popstart-extras.js"><\/script>\n';
+    }
+    if (hasCss) {
+      out += '<style>\n' + css + '\n</style>\n';
+    }
+    out += '</head>\n<body>\n\n';
+    out += html + '\n';
+    if (hasJs) {
+      out += '\n<script>\n' + js.replace(closeTag, '<\\/' + 'script') + '\n<\/script>\n';
+    }
+    out += '\n</body>\n</html>\n';
+    return out;
+  }
+
+  // ══════════════════════════════════════════
+  // CSS SCOPING (prefix selectors to avoid leaking)
+  // ══════════════════════════════════════════
+  function scopeCssRules(css, scopeSelector) {
+    var result = '';
+    var lines  = css.split('\n');
+    var inAtRule   = false;
+    var braceDepth = 0;
+
+    for (var i = 0; i < lines.length; i++) {
+      var line    = lines[i];
+      var trimmed = line.trim();
+
+      if (!trimmed) { result += '\n'; continue; }
+
+      // Don't scope @keyframes, @font-face, @import
+      if (/^@(keyframes|font-face|import)/.test(trimmed)) {
+        inAtRule = true;
+        result += line + '\n';
+        braceDepth += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+        continue;
+      }
+      if (inAtRule) {
+        result += line + '\n';
+        braceDepth += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+        if (braceDepth <= 0) { inAtRule = false; braceDepth = 0; }
+        continue;
+      }
+
+      // @media: pass through the line, scope inner rules
+      if (/^@media/.test(trimmed)) { result += line + '\n'; continue; }
+
+      // Closing brace
+      if (trimmed === '}') { result += line + '\n'; continue; }
+
+      // Selector lines (contain '{')
+      if (trimmed.indexOf('{') !== -1) {
+        var parts = trimmed.split('{');
+        var selector = parts[0].trim();
+        var rest = parts.slice(1).join('{');
+        var scopedSelectors = selector.split(',').map(function(sel) {
+          sel = sel.trim();
+          if (!sel) return sel;
+          // Rewrite global selectors to target the preview container
+          if (/^:root\b/.test(sel)) return sel.replace(/^:root/, scopeSelector);
+          if (/^html\b/.test(sel)) return sel.replace(/^html/, scopeSelector);
+          if (/^body\b/.test(sel)) return sel.replace(/^body/, scopeSelector);
+          return scopeSelector + ' ' + sel;
+        }).join(', ');
+        result += scopedSelectors + ' {' + rest + '\n';
+      } else {
+        result += line + '\n';
+      }
+    }
+    return result;
+  }
+
+  // ══════════════════════════════════════════
+  // WIDGET LIST MODE
+  // ══════════════════════════════════════════
+  function showList() {
+    document.title = 'Widget Gallery \u2014 Popstart';
+    $title.innerHTML = 'Widget <span>Gallery</span>';
+
+    // Gather unique categories, preserving discovery order
+    var cats = ['all'];
+    allWidgets.forEach(function(w) {
+      if (cats.indexOf(w.cat) === -1) cats.push(w.cat);
+    });
+
+    // Build category filter nav
+    var catNav = document.getElementById('wv-cat-nav');
+    catNav.innerHTML = cats.map(function(c) {
+      var label = c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1);
+      var count = c === 'all'
+        ? allWidgets.length
+        : allWidgets.filter(function(w) { return w.cat === c; }).length;
+      return '<button class="wv-cat-btn' + (c === 'all' ? ' active' : '') + '" ' +
+             'data-cat="' + c + '" onclick="filterCat(this)">' +
+             label + ' <span style="opacity:0.5;font-size:10px;margin-left:2px">' + count + '</span></button>';
+    }).join('');
+
+    renderGrid(allWidgets);
+    $listView.classList.remove('hidden');
+
+    // Focus search on desktop
+    if (window.innerWidth > 600) {
+      setTimeout(function() { document.getElementById('wv-search').focus(); }, 100);
+    }
+  }
+
+  function renderGrid(widgets) {
+    var grid    = document.getElementById('wv-grid');
+    var countEl = document.getElementById('wv-count');
+
+    if (!widgets.length) {
+      grid.innerHTML = '<div class="wv-no-results">No widgets match your search.</div>';
+      countEl.textContent = '0 widgets';
+      return;
+    }
+
+    countEl.textContent = widgets.length + ' widget' + (widgets.length !== 1 ? 's' : '');
+
+    grid.innerHTML = widgets.map(function(w) {
+      return '<a class="wv-card" href="widget.html?w=' + encodeURIComponent(w.name) + '"' +
+        ' data-wname="' + escapeHtml(w.name) + '"' +
+        ' data-wcat="' + escapeHtml(w.cat) + '"' +
+        ' data-wsub="' + escapeHtml(w.sub) + '">' +
+        '<div class="wv-card-name">' + escapeHtml(w.label) + '</div>' +
+        '<div class="wv-card-cat">' + escapeHtml(w.cat) + '</div>' +
+        (w.sub ? '<div class="wv-card-sub">' + escapeHtml(w.sub) + '</div>' : '') +
+        '</a>';
+    }).join('');
+  }
+
+  window.filterCat = function(btn) {
+    activeCat = btn.dataset.cat;
+    document.querySelectorAll('.wv-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    applyFilters();
+  };
+
+  window.wvFilterList = function() {
+    applyFilters();
+  };
+
+  function applyFilters() {
+    var q = (document.getElementById('wv-search').value || '').toLowerCase().trim();
+    var cards = document.querySelectorAll('#wv-grid .wv-card');
+    var count = 0;
+    cards.forEach(function(card) {
+      var name  = (card.dataset.wname || '').toLowerCase();
+      var label = (card.querySelector('.wv-card-name') || {textContent:''}).textContent.toLowerCase();
+      var cat   = (card.dataset.wcat  || '').toLowerCase();
+      var sub   = (card.dataset.wsub  || '').toLowerCase();
+      var catMatch  = activeCat === 'all' || cat === activeCat;
+      var textMatch = !q || name.indexOf(q) !== -1 || label.indexOf(q) !== -1 || sub.indexOf(q) !== -1 || cat.indexOf(q) !== -1;
+      if (catMatch && textMatch) { card.style.display = ''; count++; }
+      else { card.style.display = 'none'; }
+    });
+    var countEl = document.getElementById('wv-count');
+    if (countEl) countEl.textContent = count + ' widget' + (count !== 1 ? 's' : '');
+  }
+
+  // ══════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  // ══════════════════════════════════════════
+  // THEME TOGGLE
+  // ══════════════════════════════════════════
+  var themes = ['darkglass', 'lightglass', 'midnight'];
+  window.cycleTheme = function() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'darkglass';
+    var idx = themes.indexOf(cur);
+    var next = themes[(idx + 1) % themes.length];
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('ps-theme', next);
+  };
+
+  window.setViewport = function(btn) {
+    var vp = btn.dataset.vp;
+    var content = document.getElementById('wv-preview-content');
+    btn.closest('.wv-viewport-bar').querySelectorAll('.wv-vp-btn').forEach(function(b) { b.classList.remove('active') });
+    btn.classList.add('active');
+    content.classList.remove('vp-tablet', 'vp-mobile');
+    if (vp === 'tablet') content.classList.add('vp-tablet');
+    if (vp === 'mobile') content.classList.add('vp-mobile');
+  };
+
+  window.setDemoViewport = function(btn) {
+    var vp = btn.dataset.vp;
+    var content = document.getElementById('wv-demo-content');
+    btn.closest('.wv-viewport-bar').querySelectorAll('.wv-vp-btn').forEach(function(b) { b.classList.remove('active') });
+    btn.classList.add('active');
+    content.classList.remove('vp-tablet', 'vp-mobile');
+    if (vp === 'tablet') content.classList.add('vp-tablet');
+    if (vp === 'mobile') content.classList.add('vp-mobile');
+  };
+
+})();
+</script>
+</body>
+</html>
