@@ -3908,26 +3908,28 @@ function showApiError(msg) {
         <div class="src-block">
           <div class="src-label">JavaScript</div>
           <pre><code>// Nav click → scroll within container (not the page)
-var scroll = document.getElementById('spy-scroll')
-document.querySelectorAll('.spy-link').forEach(btn =&gt; {
-  btn.onclick = () =&gt; {
-    var t = document.querySelector(btn.dataset.spyTarget)
-    scroll.scrollTo({top: t.offsetTop - scroll.offsetTop,
-      behavior:'smooth'})
-  }
-})
-// Scroll → highlight active nav link
-var observer = new IntersectionObserver(entries =&gt; {
-  entries.forEach(e =&gt; {
-    if (!e.isIntersecting) return
-    document.querySelectorAll('.spy-link').forEach(b =&gt;
-      b.classList.toggle('active',
-        b.dataset.spyTarget === '#'+e.target.id))
+document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
+  if (widget.dataset.spyInit) return
+  widget.dataset.spyInit = '1'
+  var scroll = widget.querySelector('.scrollspy-content')
+  var links = widget.querySelectorAll('.spy-link')
+  var sections = widget.querySelectorAll('.scrollspy-section')
+  links.forEach(btn =&gt; {
+    btn.onclick = () =&gt; {
+      var t = widget.querySelector(btn.dataset.spyTarget)
+      if (!t) return
+      scroll.scrollTo({top: t.offsetTop - scroll.offsetTop, behavior:'smooth'})
+    }
   })
-}, {root: document.getElementById('spy-scroll'),
-   threshold: 0.4})
-document.querySelectorAll('.scrollspy-section')
-  .forEach(s =&gt; observer.observe(s))</code></pre>
+  var observer = new IntersectionObserver(entries =&gt; {
+    entries.forEach(e =&gt; {
+      if (!e.isIntersecting) return
+      links.forEach(b =&gt;
+        b.classList.toggle('active', b.dataset.spyTarget === '#'+e.target.id))
+    })
+  }, {root: scroll, threshold: 0.4})
+  sections.forEach(s =&gt; observer.observe(s))
+})</code></pre>
         </div>
       </div>
     </div>
@@ -4168,12 +4170,12 @@ document.querySelectorAll('.scrollspy-section')
       </div>
       <div id="sharemenu-demo">
         <div class="share-wrap">
-          <button class="btn accent" ps-click="__.toggle" toggle-selector="#share-dropdown" debounce="0">&#9733; Share</button>
-          <div class="share-dropdown hidden" id="share-dropdown">
-            <a href="#" ps-click="__.copy, __.hide" copy-text="https://popstart.org" hide-selector="#share-dropdown" debounce="0" click-prevent-default="true">&#128279; Copy Link</a>
-            <a href="#" ps-click="__.alertInfo, __.hide" alertInfo-msg="Share to Twitter!" hide-selector="#share-dropdown" debounce="0" click-prevent-default="true">&#120143; Twitter</a>
-            <a href="#" ps-click="__.alertInfo, __.hide" alertInfo-msg="Share to LinkedIn!" hide-selector="#share-dropdown" debounce="0" click-prevent-default="true">&#128101; LinkedIn</a>
-            <a href="#" ps-click="__.alertInfo, __.hide" alertInfo-msg="Opening email client..." hide-selector="#share-dropdown" debounce="0" click-prevent-default="true">&#9993; Email</a>
+          <button class="btn accent" ps-click="__.toggleNext" debounce="0">&#9733; Share</button>
+          <div class="share-dropdown hidden">
+            <a href="#" ps-click="__.copy, __.hideClosest" copy-text="https://popstart.org" hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#128279; Copy Link</a>
+            <a href="#" ps-click="__.alertInfo, __.hideClosest" alertInfo-msg="Share to Twitter!" hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#120143; Twitter</a>
+            <a href="#" ps-click="__.alertInfo, __.hideClosest" alertInfo-msg="Share to LinkedIn!" hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#128101; LinkedIn</a>
+            <a href="#" ps-click="__.alertInfo, __.hideClosest" alertInfo-msg="Opening email client..." hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#9993; Email</a>
           </div>
         </div>
         <p style="font-size:var(--fs-xs);color:var(--fg3);margin-top:var(--sp-2)">Click Share to toggle dropdown. Each option chains an action then closes the menu.</p>
@@ -4182,16 +4184,15 @@ document.querySelectorAll('.scrollspy-section')
         <div class="src-block">
           <div class="src-label">HTML</div>
           <pre><code>&lt;button class="btn accent"
-  <strong style="color:var(--accent)">ps-click="__.toggle"</strong>
-  <strong style="color:var(--accent)">toggle-selector="#share-dropdown"</strong>&gt;Share&lt;/button&gt;
+  <strong style="color:var(--accent)">ps-click="__.toggleNext"</strong>&gt;Share&lt;/button&gt;
 
-&lt;div class="share-dropdown hidden" id="share-dropdown"&gt;
-  &lt;a <strong style="color:var(--accent)">ps-click="__.copy, __.hide"</strong>
+&lt;div class="share-dropdown hidden"&gt;
+  &lt;a <strong style="color:var(--accent)">ps-click="__.copy, __.hideClosest"</strong>
     copy-text="https://popstart.org"
-    hide-selector="#share-dropdown"&gt;Copy Link&lt;/a&gt;
-  &lt;a <strong style="color:var(--accent)">ps-click="__.alertInfo, __.hide"</strong>
+    hideClosest-match=".share-dropdown"&gt;Copy Link&lt;/a&gt;
+  &lt;a <strong style="color:var(--accent)">ps-click="__.alertInfo, __.hideClosest"</strong>
     alertInfo-msg="Share to Twitter!"
-    hide-selector="#share-dropdown"&gt;Twitter&lt;/a&gt;
+    hideClosest-match=".share-dropdown"&gt;Twitter&lt;/a&gt;
 &lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
@@ -12507,7 +12508,7 @@ function wrStop() {
             <div class="il-icon success">&#128274;</div>
             <div class="il-text">
               <h4>Secure by Default</h4>
-              <p>XSS-safe attribute parsing. No eval. No innerHTML injection.</p>
+              <p>XSS-safe attribute parsing. Sanitized HTML sinks by default. No implicit eval in the runtime.</p>
             </div>
           </div>
           <div class="il-item">
@@ -18483,7 +18484,7 @@ User Interaction (click, submit, etc.)
           <div class="ssnap-card"><div class="ssnap-icon">&#128230;</div><h4>Tiny</h4><p>Under 18KB gzipped for core + extras.</p></div>
           <div class="ssnap-card"><div class="ssnap-icon">&#128736;</div><h4>Flexible</h4><p>Compose any behavior from simple parts.</p></div>
           <div class="ssnap-card"><div class="ssnap-icon">&#127912;</div><h4>Styled</h4><p>Works with any CSS framework or custom theme.</p></div>
-          <div class="ssnap-card"><div class="ssnap-icon">&#128274;</div><h4>Secure</h4><p>No eval, no innerHTML abuse, no surprises.</p></div>
+          <div class="ssnap-card"><div class="ssnap-icon">&#128274;</div><h4>Secure</h4><p>Sanitized defaults, explicit escape hatches, no hidden surprises.</p></div>
           <div class="ssnap-card"><div class="ssnap-icon">&#9203;</div><h4>Instant</h4><p>DOMContentLoaded and you are live.</p></div>
         </div>
       </div>
@@ -19595,30 +19596,32 @@ function chainDemo() {
 // SCROLLSPY — real scroll-position tracking
 // ══════════════════════════════════════════════
 ;(function() {
-  var scroll = document.getElementById('scrollspy-scroll')
-  var nav = document.getElementById('scrollspy-nav-links')
-  if (!scroll || !nav) return
-  var links = nav.querySelectorAll('.spy-link')
-  var sections = scroll.querySelectorAll('.scrollspy-section')
+  document.querySelectorAll('.scrollspy-layout').forEach(function(widget) {
+    if (widget.dataset.spyInit) return
+    widget.dataset.spyInit = '1'
+    var scroll = widget.querySelector('.scrollspy-content')
+    var nav = widget.querySelector('.scrollspy-nav')
+    if (!scroll || !nav) return
+    var links = nav.querySelectorAll('.spy-link')
+    var sections = scroll.querySelectorAll('.scrollspy-section')
 
-  // Click → scroll within container only (not the page)
-  links.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var target = document.querySelector(btn.dataset.spyTarget)
-      if (target) scroll.scrollTo({top: target.offsetTop - scroll.offsetTop, behavior: 'smooth'})
-    })
-  })
-
-  // Scroll → highlight active nav link
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (!e.isIntersecting) return
-      links.forEach(function(b) {
-        b.classList.toggle('active', b.dataset.spyTarget === '#' + e.target.id)
+    links.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = widget.querySelector(btn.dataset.spyTarget)
+        if (target) scroll.scrollTo({top: target.offsetTop - scroll.offsetTop, behavior: 'smooth'})
       })
     })
-  }, {root: scroll, threshold: 0.4})
-  sections.forEach(function(s) { observer.observe(s) })
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (!e.isIntersecting) return
+        links.forEach(function(b) {
+          b.classList.toggle('active', b.dataset.spyTarget === '#' + e.target.id)
+        })
+      })
+    }, {root: scroll, threshold: 0.4})
+    sections.forEach(function(s) { observer.observe(s) })
+  })
 })();
 
 // ══════════════════════════════════════════════
@@ -21632,28 +21635,13 @@ function runEditedCode(btn) {
   var preview = document.createElement('div')
   preview.className = 'src-run-preview'
   preview.id = scopeId
-  // data attribute for CSS scoping reference
   preview.setAttribute('data-scope', scopeId)
 
-  // Scope CSS: prefix all rules with the preview container ID
-  if (cssCode.trim()) {
-    var scopedCss = scopeCssRules(cssCode, '#' + scopeId)
-    var styleEl = document.createElement('style')
-    styleEl.setAttribute('data-src-scoped', scopeId)
-    styleEl.textContent = scopedCss
-    container.appendChild(styleEl)
-  }
-
-  // Scope HTML: rewrite IDs to avoid collisions with the main page
-  var scopedHtml = scopeHtmlIds(htmlCode.trim(), scopeId)
-
-  // Inject HTML
-  try {
-    preview.insertAdjacentHTML('beforeend', scopedHtml)
-  } catch (err) {
-    showPreviewError(container, 'HTML parse error: ' + err.message)
-    return
-  }
+  var frame = document.createElement('iframe')
+  frame.className = 'wv-frame'
+  frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals')
+  frame.setAttribute('loading', 'lazy')
+  frame.style.minHeight = '240px'
 
   // Insert preview below the editor
   var editAreaEl = container.querySelector('.src-edit-area')
@@ -21663,27 +21651,25 @@ function runEditedCode(btn) {
     container.appendChild(preview)
   }
 
-  // Execute JS: scope ID references and run in try/catch
-  if (jsCode.trim()) {
-    try {
-      // Rewrite ID references in JS to match scoped IDs
-      var scopedJs = scopeJsIds(jsCode, scopeId)
-      var fn = new Function(scopedJs)
-      fn()
-    } catch (err) {
-      var errDiv = document.createElement('div')
-      errDiv.className = 'src-error-msg'
-      errDiv.textContent = 'JS Error: ' + err.message
-      preview.appendChild(errDiv)
-      preview.classList.add('has-error')
-    }
-  }
-
-  // Rebind Popstart events on the new content
   try {
-    __.Popstart()
-  } catch (e) {
-    // Popstart binding errors are non-fatal
+    var closeTag = new RegExp('</' + 'script', 'gi')
+    var theme = document.documentElement.getAttribute('data-theme') || 'darkglass'
+    var pageStyles = Array.from(document.querySelectorAll('style')).map(function(el) { return el.textContent }).join('\n')
+    var iframeHtml = '<!DOCTYPE html><html lang="en" data-theme="' + theme + '"><head>'
+      + '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+      + '<link rel="preconnect" href="https://fonts.googleapis.com">'
+      + '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">'
+      + '<style>' + pageStyles + '\n' + cssCode + '</style>'
+      + '<script src="popstart-core.js"><\/script><script src="popstart-extras.js"><\/script>'
+      + '</head><body>' + htmlCode
+      + (jsCode.trim() ? '<script>\n' + jsCode.replace(closeTag, '<\\/' + 'script') + '\n<\/script>' : '')
+      + '<script>(function(){function postHeight(){parent.postMessage({type:\"src-run-height\",scopeId:' + JSON.stringify(scopeId) + ',height:Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0,240)},\"*\")} window.addEventListener(\"load\",function(){postHeight();setTimeout(postHeight,60);setTimeout(postHeight,300)}); if(window.ResizeObserver){new ResizeObserver(postHeight).observe(document.documentElement)} window.addEventListener(\"resize\",postHeight)})();<\/script>'
+      + '</body></html>'
+    frame.srcdoc = iframeHtml
+    preview.appendChild(frame)
+  } catch (err) {
+    showPreviewError(container, 'Preview error: ' + err.message)
+    return
   }
 
   // Success flash
@@ -21722,6 +21708,15 @@ function showPreviewError(container, msg) {
     container.appendChild(preview)
   }
 }
+
+window.addEventListener('message', function(event) {
+  var data = event.data || {}
+  if (data.type !== 'src-run-height' || !data.scopeId || !data.height) return
+  var preview = document.getElementById(data.scopeId)
+  if (!preview) return
+  var frame = preview.querySelector('iframe')
+  if (frame) frame.style.height = Math.max(240, Number(data.height) || 240) + 'px'
+})
 
 /**
  * scopeCssRules – prefix CSS selectors with a scope selector to prevent leaking.

@@ -58,17 +58,17 @@ __.loadPlugin=(name)=>{
 			document.head.appendChild(l)
 		}),
 		// HTML template (optional, inject hidden)
-		fetch(root+'.html').then(r=>{
-			if(!r.ok)return
-			return r.text().then(html=>{
-				let wrap=document.createElement('div')
-				wrap.className='ps-plugin ps-plugin-'+name+' hidden'
-				wrap.style.display='none'
-				wrap.innerHTML=html
-				document.body.appendChild(wrap)
-				// template may contain ps-use for other plugins — scan triggers via MutationObserver
-			})
-		}).catch(()=>{})
+			fetch(root+'.html').then(r=>{
+				if(!r.ok)return
+				return r.text().then(html=>{
+					let wrap=document.createElement('div')
+					wrap.className='ps-plugin ps-plugin-'+name+' hidden'
+					wrap.style.display='none'
+					wrap.innerHTML=__.sanitizeHTML?__.sanitizeHTML(html):html
+					document.body.appendChild(wrap)
+					// template may contain ps-use for other plugins — scan triggers via MutationObserver
+				})
+			}).catch(()=>{})
 	]).then(()=>{
 		info('plugin loaded:',name)
 		__.Popstart()

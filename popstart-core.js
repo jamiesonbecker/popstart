@@ -44,6 +44,8 @@ __.configDefaults={
 	DetectDOMAttrChangesFilter:undefined,
 	// set to false to disable automatic HTML sanitization (e.g. if you sanitize server-side)
 	sanitize:true,
+	// set to false only when you explicitly trust HTML passed into raw DOM sink helpers
+	sanitizeHTMLSinks:true,
 }
 
 for(let k in __.configDefaults){
@@ -60,6 +62,32 @@ __.safify=(str)=>{
 	d.appendChild(document.createTextNode(str))
 	return d.innerHTML
 }
+__.sanitizeHTML=(html)=>{
+	if(typeof html!=='string')return html
+	if(typeof DOMPurify!=='undefined'&&typeof DOMPurify.sanitize==='function')
+		return DOMPurify.sanitize(html)
+	const tpl=document.createElement('template')
+	tpl.innerHTML=html
+	tpl.content.querySelectorAll('script,iframe,object,embed,meta').forEach(el=>el.remove())
+	tpl.content.querySelectorAll('*').forEach(el=>{
+		Array.from(el.attributes).forEach(attr=>{
+			const name=attr.name.toLowerCase()
+			const value=(attr.value||'').trim()
+			if(name.startsWith('on')||name==='srcdoc'){
+				el.removeAttribute(attr.name)
+				return
+			}
+			if(['href','src','xlink:href','action','formaction'].includes(name)){
+				const lower=value.toLowerCase()
+				if(lower.startsWith('javascript:')||lower.startsWith('data:text/html')){
+					el.removeAttribute(attr.name)
+				}
+			}
+		})
+	})
+	return tpl.innerHTML
+}
+__._html=(v)=>__.config.sanitizeHTMLSinks&&typeof v==='string'?__.sanitizeHTML(v):v
 // helper used by template functions: sanitize if config says so, pass through if not
 __._s=(v)=>__.config.sanitize?__.safify(v):v
 
@@ -211,7 +239,7 @@ __.text=function(selector,content){if(!selector)selector=this
 	__.el(selector).forEach(el=>el.textContent=content)}
 __.html=function(selector,content){if(!selector)selector=this
 	if(content===undefined)return __.el(selector).map(el=>el.innerHTML)
-	__.el(selector).forEach(el=>el.innerHTML=content)}
+	__.el(selector).forEach(el=>el.innerHTML=__._html(content))}
 __.val=function(selector,value){if(!selector)selector=this
 	if(value===undefined)return __.el(selector).map(el=>el.value)
 	__.el(selector).forEach(el=>el.value=value)}
@@ -245,20 +273,20 @@ __.prev=(selector)=>{let el=__.el(selector)[0];return el?el.previousElementSibli
 __.empty=function(selector){if(!selector)selector=this
 	__.el(selector).forEach(el=>{el.innerHTML=''})}
 __.append=function(selector,html){if(!selector)selector=this
-	__.el(selector).forEach(el=>el.insertAdjacentHTML('beforeend',html))}
+	__.el(selector).forEach(el=>el.insertAdjacentHTML('beforeend',__._html(html)))}
 __.prepend=function(selector,html){if(!selector)selector=this
-	__.el(selector).forEach(el=>el.insertAdjacentHTML('afterbegin',html))}
+	__.el(selector).forEach(el=>el.insertAdjacentHTML('afterbegin',__._html(html)))}
 __.before=function(selector,html){if(!selector)selector=this
-	__.el(selector).forEach(el=>el.insertAdjacentHTML('beforebegin',html))}
+	__.el(selector).forEach(el=>el.insertAdjacentHTML('beforebegin',__._html(html)))}
 __.after=function(selector,html){if(!selector)selector=this
-	__.el(selector).forEach(el=>el.insertAdjacentHTML('afterend',html))}
+	__.el(selector).forEach(el=>el.insertAdjacentHTML('afterend',__._html(html)))}
 __.replace=function(selector,html){if(!selector)selector=this
-	__.el(selector).forEach(el=>{let w=document.createElement('div');w.innerHTML=html
-		el.replaceWith(...w.childNodes)})}
+	__.el(selector).forEach(el=>{let w=document.createElement('div');w.innerHTML=__._html(html)
+			el.replaceWith(...w.childNodes)})}
 __.clone=(selector,deep)=>{let el=__.el(selector)[0];return el?el.cloneNode(deep!==false):null}
 __.create=(tag,attrs,content)=>{let el=document.createElement(tag)
 	if(attrs)Object.entries(attrs).forEach(([k,v])=>k==='style'?el.style.cssText=v:el.setAttribute(k,v))
-	if(content)el.innerHTML=content;return el}
+	if(content)el.innerHTML=__._html(content);return el}
 
 // CSS get/set — __.css(sel,'color') reads, __.css(sel,'color','red') or __.css(sel,{color:'red'}) writes
 __.css=function(selector,prop,value){if(!selector||typeof selector==='object'&&selector.style){value=prop;prop=selector;selector=this}

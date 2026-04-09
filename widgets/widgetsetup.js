@@ -43,7 +43,7 @@
   if (!document.head) document.documentElement.insertBefore(head, document.documentElement.firstChild);
 
   function addMeta(name, content) {
-    if (!head.querySelector('meta[name="' + name + '"]') && !head.querySelector('meta[charset]')) {
+    if (!head.querySelector('meta[name="' + name + '"]')) {
       var m = document.createElement('meta');
       if (name === 'charset') m.setAttribute('charset', content);
       else { m.name = name; m.content = content; }

@@ -203,6 +203,7 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
 #wv-preview-content,#wv-demo-content{transition:max-width 0.3s ease}
 #wv-preview-content.vp-tablet,#wv-demo-content.vp-tablet{max-width:768px;margin:0 auto;border-left:1px dashed var(--card-border);border-right:1px dashed var(--card-border);padding-left:var(--sp-4);padding-right:var(--sp-4)}
 #wv-preview-content.vp-mobile,#wv-demo-content.vp-mobile{max-width:375px;margin:0 auto;border-left:1px dashed var(--card-border);border-right:1px dashed var(--card-border);padding-left:var(--sp-3);padding-right:var(--sp-3)}
+.wv-frame{display:block;width:100%;min-height:280px;border:none;border-radius:var(--radius-sm);background:var(--bg)}
 @media(max-width:600px){.wv-viewport-bar{display:none}}
 
 /* ═══ LOADING / ERROR STATES ═══ */
@@ -439,8 +440,6 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
   var indexStyles = '';
   var libCoreJs  = '';  // popstart-core.js contents (for standalone export)
   var libExtrasJs = ''; // popstart-extras.js contents
-  var indexScriptsJoined = ''; // stored for re-eval after widget injection
-  var indexScriptBlocks = [];  // individual script blocks for per-block eval
 
   // Pre-fetch library JS for standalone export
   Promise.all([
@@ -529,27 +528,6 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
       var cssTexts = [];
       styles.forEach(function(s) { cssTexts.push(s.textContent); });
       indexStyles = cssTexts.join('\n');
-
-      // Inject index styles into this page for the live demo area
-      var styleEl = document.createElement('style');
-      styleEl.id = 'wv-index-styles';
-      styleEl.textContent = indexStyles;
-      document.head.appendChild(styleEl);
-
-      // Extract ALL inline <script> tags from index.html
-      // Run them now for function defs, store for re-eval after widget injection
-      var scripts = indexDoc.querySelectorAll('script');
-      indexScriptBlocks = [];
-      scripts.forEach(function(s) {
-        if (!s.src && s.textContent.trim()) indexScriptBlocks.push(s.textContent);
-      });
-      indexScriptsJoined = indexScriptBlocks.length ? indexScriptBlocks.join('\n;\n') : '';
-      // Eval each script block separately so one failure doesn't block the rest
-      indexScriptBlocks.forEach(function(block) {
-        try { (0, eval)(block); } catch(e) {
-          console.warn('widget.html: eval error:', e.message);
-        }
-      });
 
       // Collect all widget cards (scoped to grid sections, skip hero cards)
       indexDoc.querySelectorAll('#widget-grid .card[data-widget][data-cat], #widget-grid-2 .card[data-widget][data-cat]').forEach(function(card) {
@@ -664,21 +642,11 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     autoSizeTextarea($taCss);
     autoSizeTextarea($taJs);
 
-    // Render live demo
-    $demo.innerHTML = demoHtml;
-
-    // Re-execute any inline scripts from the demo so they run in this page context
-    reactivateScripts($demo);
-
-    // Bind Popstart events on the demo content
-    try { __.Popstart(); } catch(e) { /* non-fatal */ }
-
-    // Re-eval index.html scripts so IIFEs can find newly-injected DOM elements
-    // (scrollspy, OTP, file upload, range slider, etc. depend on this)
-    // Eval each block separately so one failure doesn't block the rest
-    indexScriptBlocks.forEach(function(block) {
-      try { (0, eval)(block); } catch(e) { /* non-fatal */ }
-    });
+    renderSandboxedFrame(
+      $demo,
+      buildStandaloneFile(true, 'demo', htmlCode || cleanDemoHtml(demoDiv) || demoHtml, cssCode, jsCode),
+      'demo'
+    );
 
     $widgetView.classList.remove('hidden');
   }
@@ -715,18 +683,15 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     return clone.innerHTML.trim();
   }
 
-  /** Re-execute <script> tags inside an element (DOMParser scripts don't run) */
-  function reactivateScripts(container) {
-    var scripts = container.querySelectorAll('script');
-    scripts.forEach(function(old) {
-      var s = document.createElement('script');
-      if (old.src) {
-        s.src = old.src;
-      } else {
-        s.textContent = old.textContent;
-      }
-      old.parentNode.replaceChild(s, old);
-    });
+  function renderSandboxedFrame(container, srcdoc, frameId) {
+    container.innerHTML = '';
+    var frame = document.createElement('iframe');
+    frame.className = 'wv-frame';
+    frame.dataset.frameId = frameId;
+    frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals');
+    frame.setAttribute('loading', 'lazy');
+    frame.srcdoc = srcdoc;
+    container.appendChild(frame);
   }
 
   function autoSizeTextarea(ta) {
@@ -750,54 +715,7 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
   // RUN CODE
   // ══════════════════════════════════════════
   window.runCode = function() {
-    var html = $taHtml.value;
-    var css  = $taCss.value;
-    var js   = $taJs.value;
-
-    // Clear preview
-    $preview.innerHTML = '';
-
-    // Remove previous preview-scoped styles
-    var old = document.getElementById('wv-preview-style');
-    if (old) old.remove();
-
-    // Inject CSS scoped to the preview container
-    if (css && css.trim() && !css.trim().startsWith('/* No widget-specific')) {
-      var scopedCss = scopeCssRules(css, '#wv-preview-content');
-      var sEl = document.createElement('style');
-      sEl.id = 'wv-preview-style';
-      sEl.textContent = scopedCss;
-      document.head.appendChild(sEl);
-    }
-
-    // Inject HTML
-    try {
-      $preview.innerHTML = html;
-    } catch(err) {
-      $preview.innerHTML =
-        '<div style="color:var(--error);font-family:JetBrains Mono,monospace;font-size:12px">' +
-        'HTML Error: ' + escapeHtml(err.message) + '</div>';
-      return;
-    }
-
-    // Re-execute scripts that were injected as HTML
-    reactivateScripts($preview);
-
-    // Execute the JS tab code in global scope so it can access helpers
-    if (js && js.trim() && !js.trim().startsWith('// No widget-specific') && !js.trim().startsWith('// zero')) {
-      try {
-        (0, eval)(js);
-      } catch(err) {
-        var errDiv = document.createElement('div');
-        errDiv.style.cssText = 'color:var(--error);font-family:JetBrains Mono,monospace;font-size:12px;' +
-          'margin-top:1rem;padding:0.75rem;border:1px solid var(--error);border-radius:4px;background:rgba(232,70,90,0.08)';
-        errDiv.textContent = 'JS Error: ' + err.message;
-        $preview.appendChild(errDiv);
-      }
-    }
-
-    // Rebind Popstart events on the new preview content
-    try { __.Popstart(); } catch(e) { /* non-fatal */ }
+    renderSandboxedFrame($preview, buildStandaloneFile(true, 'preview'), 'preview');
 
     // Flash success animation
     $previewBox.classList.remove('flash');
@@ -866,21 +784,24 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
   };
 
   window.buildStandaloneFile = buildStandaloneFile;
-  function buildStandaloneFile(inline) {
-    var html  = $taHtml.value || '';
-    var css   = $taCss.value  || '';
-    var js    = $taJs.value   || '';
+  function buildStandaloneFile(inline, frameId, htmlOverride, cssOverride, jsOverride) {
+    var html  = htmlOverride !== undefined ? htmlOverride : ($taHtml.value || '');
+    var css   = cssOverride !== undefined ? cssOverride : ($taCss.value || '');
+    var js    = jsOverride !== undefined ? jsOverride : ($taJs.value || '');
     var label = widgetName
       ? widgetName.charAt(0).toUpperCase() + widgetName.slice(1) + ' Widget'
       : 'Popstart Widget';
+    var theme = document.documentElement.getAttribute('data-theme') || 'darkglass';
 
     var hasCss = css.trim() && !css.trim().startsWith('/* No widget-specific');
     var hasJs  = js.trim() && !js.trim().startsWith('// No widget-specific') && !js.trim().startsWith('// zero');
 
-    var out = '<!DOCTYPE html>\n<html lang="en">\n<head>\n';
+    var out = '<!DOCTYPE html>\n<html lang="en" data-theme="' + escapeHtml(theme) + '">\n<head>\n';
     out += '<meta charset="utf-8">\n';
     out += '<meta name="viewport" content="width=device-width,initial-scale=1">\n';
     out += '<title>' + escapeHtml(label) + '</title>\n';
+    out += '<link rel="preconnect" href="https://fonts.googleapis.com">\n';
+    out += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n';
     // Escape closing script tags in JS content so the browser doesn't close the tag early
     var closeTag = new RegExp('</' + 'script', 'gi');
     if (inline && (libCoreJs || libExtrasJs)) {
@@ -893,6 +814,9 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
       out += '<script src="popstart-core.js"><\/script>\n';
       out += '<script src="popstart-extras.js"><\/script>\n';
     }
+    if (indexStyles) {
+      out += '<style>\n' + indexStyles + '\n</style>\n';
+    }
     if (hasCss) {
       out += '<style>\n' + css + '\n</style>\n';
     }
@@ -900,6 +824,19 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     out += html + '\n';
     if (hasJs) {
       out += '\n<script>\n' + js.replace(closeTag, '<\\/' + 'script') + '\n<\/script>\n';
+    }
+    if (frameId) {
+      out += '\n<script>\n(function(){\n'
+        + 'var frameId=' + JSON.stringify(frameId) + ';\n'
+        + 'function postHeight(){\n'
+        + '  var h=Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0,320);\n'
+        + '  parent.postMessage({type:"popstart-widget-height",frameId:frameId,height:h},"*");\n'
+        + '}\n'
+        + 'window.addEventListener("load",function(){postHeight();setTimeout(postHeight,60);setTimeout(postHeight,300);});\n'
+        + 'window.addEventListener("resize",postHeight);\n'
+        + 'if(window.ResizeObserver){new ResizeObserver(postHeight).observe(document.documentElement);}\n'
+        + 'setTimeout(postHeight,0);\n'
+        + '})();\n<\/script>\n';
     }
     out += '\n</body>\n</html>\n';
     return out;
@@ -1047,6 +984,16 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     });
     var countEl = document.getElementById('wv-count');
     if (countEl) countEl.textContent = count + ' widget' + (count !== 1 ? 's' : '');
+    var grid = document.getElementById('wv-grid');
+    var empty = grid.querySelector('.wv-no-results');
+    if (count === 0 && !empty) {
+      empty = document.createElement('div');
+      empty.className = 'wv-no-results';
+      empty.textContent = 'No widgets match your search.';
+      grid.appendChild(empty);
+    } else if (count > 0 && empty) {
+      empty.remove();
+    }
   }
 
   // ══════════════════════════════════════════
@@ -1068,6 +1015,10 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     var next = themes[(idx + 1) % themes.length];
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('ps-theme', next);
+    var demoFrame = document.querySelector('.wv-frame[data-frame-id="demo"]');
+    if (demoFrame) demoFrame.srcdoc = buildStandaloneFile(true, 'demo');
+    var previewFrame = document.querySelector('.wv-frame[data-frame-id="preview"]');
+    if (previewFrame) previewFrame.srcdoc = buildStandaloneFile(true, 'preview');
   };
 
   window.setViewport = function(btn) {
@@ -1089,6 +1040,13 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     if (vp === 'tablet') content.classList.add('vp-tablet');
     if (vp === 'mobile') content.classList.add('vp-mobile');
   };
+
+  window.addEventListener('message', function(event) {
+    var data = event.data || {};
+    if (data.type !== 'popstart-widget-height' || !data.frameId || !data.height) return;
+    var frame = document.querySelector('.wv-frame[data-frame-id="' + data.frameId + '"]');
+    if (frame) frame.style.height = Math.max(320, Number(data.height) || 320) + 'px';
+  });
 
 })();
 </script>

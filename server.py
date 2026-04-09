@@ -4,7 +4,7 @@
 # Provides static file serving, a JSON key-value store, file uploads,
 # Server-Sent Events, and WebSocket chat — all from the stdlib.
 
-import sys, os, json, uuid, time, struct, hashlib, base64, tempfile, threading
+import sys, os, json, uuid, time, struct, hashlib, base64, tempfile, threading, ipaddress
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from urllib.parse import urlparse, unquote
@@ -114,12 +114,17 @@ class Handler(SimpleHTTPRequestHandler):
 
     # ── CORS & OPTIONS ───────────────────────────────────────────────────
     def end_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "*")
+        origin = self.headers.get("Origin", "")
+        if self.is_allowed_origin(origin):
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
 
     def do_OPTIONS(self):
+        if not self.enforce_local_api():
+            return
         self.send_response(204)
         self.send_header("Connection", "close")
         self.end_headers()
@@ -141,16 +146,44 @@ class Handler(SimpleHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", 0))
         return self.rfile.read(length)
 
+    def is_loopback_client(self):
+        try:
+            return ipaddress.ip_address(self.client_address[0]).is_loopback
+        except ValueError:
+            return False
+
+    def is_allowed_origin(self, origin: str):
+        if not origin:
+            return True
+        try:
+            parsed = urlparse(origin)
+        except Exception:
+            return False
+        return parsed.scheme in ("http", "https") and parsed.hostname in ("127.0.0.1", "localhost")
+
+    def is_allowed_host(self):
+        host = (self.headers.get("Host", "").split(":", 1)[0] or "").lower()
+        return host in ("", "127.0.0.1", "localhost")
+
+    def enforce_local_api(self):
+        if self.is_loopback_client() and self.is_allowed_host() and self.is_allowed_origin(self.headers.get("Origin", "")):
+            return True
+        return self.json_response({"error": "local access only"}, 403)
+
     # ── Routing ──────────────────────────────────────────────────────────
     def route(self, method: str):
         path = urlparse(self.path).path.rstrip("/")
 
         # --- Store CRUD ---
         if path == "/api/store" and method == "GET":
+            if not self.enforce_local_api():
+                return True
             with store_lock:
                 return self.json_response(list(STORE.values()))
 
         if path == "/api/store" and method == "POST":
+            if not self.enforce_local_api():
+                return True
             obj = json.loads(self.read_body())
             obj.setdefault("id", str(uuid.uuid4()))
             with store_lock:
@@ -159,6 +192,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.json_response(obj, 201)
 
         if path.startswith("/api/store/") and method == "GET":
+            if not self.enforce_local_api():
+                return True
             key = path.split("/api/store/", 1)[1]
             with store_lock:
                 obj = STORE.get(key)
@@ -167,6 +202,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.json_response({"error": "not found"}, 404)
 
         if path.startswith("/api/store/") and method == "DELETE":
+            if not self.enforce_local_api():
+                return True
             key = path.split("/api/store/", 1)[1]
             with store_lock:
                 removed = STORE.pop(key, None)
@@ -177,6 +214,8 @@ class Handler(SimpleHTTPRequestHandler):
 
         # --- File uploads ---
         if path == "/api/upload" and method == "POST":
+            if not self.enforce_local_api():
+                return True
             ct = self.headers.get("Content-Type", "")
             fname, data = parse_multipart(ct, self.read_body())
             if not fname:
@@ -192,6 +231,8 @@ class Handler(SimpleHTTPRequestHandler):
             }, 201)
 
         if path.startswith("/api/uploads/") and method == "GET":
+            if not self.enforce_local_api():
+                return True
             fname = unquote(path.split("/api/uploads/", 1)[1])
             fpath = os.path.join(upload_dir, os.path.basename(fname))
             if os.path.isfile(fpath):
@@ -208,12 +249,16 @@ class Handler(SimpleHTTPRequestHandler):
 
         # --- Broadcast ---
         if path == "/api/broadcast" and method == "POST":
+            if not self.enforce_local_api():
+                return True
             obj = json.loads(self.read_body())
             broadcast_event({"type": "broadcast", "message": obj.get("message", "")})
             return self.json_response({"ok": True})
 
         # --- SSE ---
         if path == "/api/sse" and method == "GET":
+            if not self.enforce_local_api():
+                return True
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
@@ -236,6 +281,8 @@ class Handler(SimpleHTTPRequestHandler):
 
         # --- WebSocket upgrade ---
         if path == "/ws" and method == "GET":
+            if not self.enforce_local_api():
+                return True
             self.handle_websocket()
             return True
 
@@ -250,7 +297,6 @@ class Handler(SimpleHTTPRequestHandler):
             f"Upgrade: websocket\r\n"
             f"Connection: Upgrade\r\n"
             f"Sec-WebSocket-Accept: {accept}\r\n"
-            f"Access-Control-Allow-Origin: *\r\n"
             f"\r\n".encode()
         )
         self.wfile.flush()
@@ -310,7 +356,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-    server = ThreadedHTTPServer(("", port), Handler)
+    server = ThreadedHTTPServer(("127.0.0.1", port), Handler)
 
     G, C, Y, R, B, N = "\033[32m", "\033[36m", "\033[33m", "\033[0m", "\033[1m", "\033[0m"
     print(f"""

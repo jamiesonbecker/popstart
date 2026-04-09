@@ -307,6 +307,21 @@ __.togglePanel=function(selector,cls){
 	if(selector)__.toggle(selector)
 	__.toggleClass(this,cls)
 }
+__.toggleNext=function(selector){
+	let el=selector?__.el(selector)[0]:this
+	if(!el||!el.nextElementSibling)return
+	__.toggle(el.nextElementSibling)
+}
+__.hideClosest=function(match){
+	if(!match||!this||!this.closest)return
+	let el=this.closest(match)
+	if(el)__.hide(el)
+}
+__.showClosest=function(match){
+	if(!match||!this||!this.closest)return
+	let el=this.closest(match)
+	if(el)__.show(el)
+}
 
 // conditional show/hide — resolves always (doesn't break chain), just toggles visibility
 // ps-click="__.showIf" showIf-selector=".panel" showIf-readdatapath="user.isAdmin" showIf-value="true"
