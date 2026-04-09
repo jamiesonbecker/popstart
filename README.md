@@ -201,7 +201,7 @@ Functions using `function` keyword (not arrow) support `this`-binding — when c
 |----------|-------------|
 | `__.el(selector [,container])` | Query DOM, returns array of elements |
 | `__.text(selector, content)` | Get/set textContent |
-| `__.html(selector, content)` | Get/set innerHTML |
+| `__.html(selector, content)` | Get/set innerHTML (sanitized on write by default) |
 | `__.val(selector, value)` | Get/set input value |
 | `__.attr(selector, name [,value])` | Get/set attributes (handles `style`) |
 | `__.show(selector)` | Remove `.hidden` class + clear `display:none` |
@@ -289,7 +289,7 @@ Built-in fetch wrappers. Auto-JSON, auto-error rejection, auto-content-type. Set
 | `__.populate([selector, readdatapath])` | Fill inputs/elements from `__.data[readdatapath]` (default `"form"`) |
 | `__.safify(str)` | HTML-escape string (uses DOMPurify if loaded) |
 
-Populate also fills `[populate="key"]` elements via innerHTML and supports `{key}` template replacement in `[populate-html]` elements. Fires a `populated` event on each element after filling, so you can chain follow-up actions.
+Populate also fills `[populate="key"]` elements via sanitized HTML and supports `{key}` template replacement in `[populate-html]` elements. Fires a `populated` event on each element after filling, so you can chain follow-up actions.
 
 ### List Rendering — `__.populateEach`
 
@@ -316,7 +316,7 @@ Render arrays as cards, lists, tables, or select options. Uses `<template>` for 
 
 For `<select>` elements, each array item becomes an `<option>`. Strings/numbers become both value and label. Objects use `valuefield`/`labelfield` (default `"value"`/`"label"`). The first placeholder `<option>` (empty value) is preserved.
 
-For all other elements, a `<template>` child provides the repeating HTML. `{key}` placeholders are replaced with item values. `{.}` and `{value}` work for simple string/number arrays. Fires a `populated` event after rendering.
+For all other elements, a `<template>` child provides the repeating HTML. `{key}` placeholders are replaced with item values. `{.}` and `{value}` work for simple string/number arrays. Item values are HTML-escaped unless you explicitly disable sanitization. Fires a `populated` event after rendering.
 
 | Function | Description |
 |----------|-------------|
@@ -341,7 +341,10 @@ For all other elements, a `<template>` child provides the repeating HTML. `{key}
 | Function | Description |
 |----------|-------------|
 | `__.empty(selector)` | Clear element innerHTML |
-| `__.append(selector, html)` | Append HTML to element |
+| `__.append(selector, html)` | Append HTML to element (sanitized on write by default) |
+| `__.toggleNext([selector])` | Toggle the next sibling element |
+| `__.hideClosest(match)` | Hide the nearest ancestor matching selector |
+| `__.showClosest(match)` | Show the nearest ancestor matching selector |
 | `__.focus(selector)` | Focus first matching element |
 | `__.scrollTo(selector)` | Smooth-scroll to element |
 | `__.resetForm(selector)` | Reset form to defaults |
@@ -482,10 +485,10 @@ A plugin is a directory at `__.config.pluginRoot` (default `/popstart/plugins`):
 /popstart/plugins/myplugin/
   myplugin.js    ← required: adds functions to __
   myplugin.css   ← optional: auto-injected into <head>
-  myplugin.html  ← optional: injected hidden into <body>
+  myplugin.html  ← optional: sanitized + injected hidden into <body>
 ```
 
-The loader fetches all three (CSS and HTML are optional — silent fail), injects them, calls `__.Popstart()` to rebind, then fires a `use-loaded` event on the requesting element. Plugin HTML templates arrive hidden and ready for `__.show`, `__.populate`, `__.populateEach`.
+The loader fetches all three (CSS and HTML are optional — silent fail), injects them, calls `__.Popstart()` to rebind, then fires a `use-loaded` event on the requesting element. Plugin HTML templates are sanitized before insertion, then arrive hidden and ready for `__.show`, `__.populate`, `__.populateEach`.
 
 Plugins can assume core + extras are loaded. A plugin is just a JS file that puts functions on `__` — no special API, no lifecycle hooks.
 
@@ -608,6 +611,8 @@ Pre-define before loading, or modify after:
 | `StopPropagationEventNames` | `submit mouseup change click` | Events that auto-stop |
 | `AlwaysPreventDefault` | `false` | Prevent default on all events |
 | `DontAutostart` | `false` | Skip auto-init on DOMContentLoaded |
+| `sanitize` | `true` | HTML-escape data values in `__.populate()` / `__.populateEach()` |
+| `sanitizeHTMLSinks` | `true` | Sanitize writes through raw HTML sink helpers like `__.html()` / `__.append()` |
 | `httpHeaders` | `{}` | Default headers for `__.get`/`__.post`/etc (extras) |
 | `pluginRoot` | `/popstart/plugins` | Plugin directory root (plugins) |
 | `routeMode` | `hash` | `'hash'` or `'history'` (router plugin) |
