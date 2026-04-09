@@ -39,6 +39,17 @@ All four attribute prefixes work: `ps-click` (recommended), `click` (bare), `dat
 
 **Core** is all you need for event handling and DOM manipulation. **Extras** adds the things real apps need — API calls, form scraping, list rendering, streaming, visual alerts, cookies, storage — without writing any of that boilerplate yourself. **Plugins** is the distribution layer — drop `use="router"` on any element and Popstart lazy-loads the router module, its CSS, and its HTML templates automatically.
 
+## Demo Server
+
+The demo backend now has a compiled Go implementation in `server.go`. It serves static files plus the local-only JSON store, uploads, SSE, WebSocket, and broadcast endpoints used by the demos.
+
+```bash
+go run .
+# or: go run . 8876
+```
+
+It binds to `127.0.0.1` only and rejects non-local `Host` / `Origin` combinations for `/api/*` and `/ws`. The older `server.py` is still present for compatibility, but the Go server is the preferred path.
+
 ## How It Works
 
 ```html

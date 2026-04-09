@@ -3954,23 +3954,23 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
         <div class="pagination">
           <button class="page-btn" ps-click="paginatePrev" debounce="0">&laquo; Prev</button>
           <button class="page-btn active" data-page="1" ps-click="__.switchTo"
-            switchTo-siblings=".pagination .page-btn"
+            switchTo-siblings="#pagination-demo .pagination .page-btn[data-page]"
             switchTo-hide="#pagination-demo .page-content"
             switchTo-show="#pg-1" debounce="0">1</button>
           <button class="page-btn" data-page="2" ps-click="__.switchTo"
-            switchTo-siblings=".pagination .page-btn"
+            switchTo-siblings="#pagination-demo .pagination .page-btn[data-page]"
             switchTo-hide="#pagination-demo .page-content"
             switchTo-show="#pg-2" debounce="0">2</button>
           <button class="page-btn" data-page="3" ps-click="__.switchTo"
-            switchTo-siblings=".pagination .page-btn"
+            switchTo-siblings="#pagination-demo .pagination .page-btn[data-page]"
             switchTo-hide="#pagination-demo .page-content"
             switchTo-show="#pg-3" debounce="0">3</button>
           <button class="page-btn" data-page="4" ps-click="__.switchTo"
-            switchTo-siblings=".pagination .page-btn"
+            switchTo-siblings="#pagination-demo .pagination .page-btn[data-page]"
             switchTo-hide="#pagination-demo .page-content"
             switchTo-show="#pg-4" debounce="0">4</button>
           <button class="page-btn" data-page="5" ps-click="__.switchTo"
-            switchTo-siblings=".pagination .page-btn"
+            switchTo-siblings="#pagination-demo .pagination .page-btn[data-page]"
             switchTo-hide="#pagination-demo .page-content"
             switchTo-show="#pg-5" debounce="0">5</button>
           <button class="page-btn" ps-click="paginateNext" debounce="0">Next &raquo;</button>
@@ -3987,7 +3987,7 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
           <pre><code>&lt;div class="pagination"&gt;
   &lt;button class="page-btn active"
     <strong style="color:var(--accent)">ps-click="__.switchTo"</strong>
-    switchTo-siblings=".pagination .page-btn"
+    switchTo-siblings=".pagination .page-btn[data-page]"
     switchTo-hide=".page-content"
     switchTo-show="#pg-1"&gt;1&lt;/button&gt;
   &lt;button class="page-btn" ... switchTo-show="#pg-2"&gt;2&lt;/button&gt;
@@ -5513,8 +5513,8 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
         </div>
       </div>
       <div id="imgzoom-demo">
-        <div class="imgzoom-container" id="imgzoom-box" style="width:100%;max-width:400px">
-          <div class="imgzoom-placeholder" id="imgzoom-surface">
+        <div class="imgzoom-container" style="width:100%;max-width:400px">
+          <div class="imgzoom-placeholder imgzoom-surface">
             <div style="text-align:center">
               <div style="font-size:2rem;margin-bottom:var(--sp-2)">&#127756;</div>
               <strong style="color:var(--fg)">Hover to zoom</strong><br>
@@ -5526,21 +5526,24 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
               </div>
             </div>
           </div>
-          <div class="imgzoom-lens" id="imgzoom-lens"></div>
+          <div class="imgzoom-lens"></div>
         </div>
       </div>
       <div id="imgzoom-src" class="hidden">
         <div class="src-block">
           <div class="src-label">HTML</div>
-          <pre><code>&lt;div class="imgzoom-container" id="imgzoom-box"&gt;
+          <pre><code>&lt;div class="imgzoom-container"&gt;
+  &lt;div class="imgzoom-surface"&gt;...&lt;/div&gt;
   &lt;img src="photo.jpg" class="imgzoom-img"&gt;
   &lt;div class="imgzoom-lens"&gt;&lt;/div&gt;
 &lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
           <div class="src-label">JavaScript</div>
-          <pre><code>// Lens follows the cursor position within the container
-let box = document.getElementById('imgzoom-box')
+          <pre><code>// Bind per widget instance, not by page-global id
+let container = document.querySelector('.imgzoom-container')
+let box = container.querySelector('.imgzoom-surface')
+let lens = container.querySelector('.imgzoom-lens')
 box.addEventListener('mousemove', e =&gt; {
   let rect = box.getBoundingClientRect()
   let x = e.clientX - rect.left, y = e.clientY - rect.top
@@ -7860,10 +7863,10 @@ function maskCard() {
         <div class="cc-scene">
           <div class="cc-card">
             <div class="cc-chip"></div>
-            <div class="cc-number" id="cc-num-display">&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;</div>
+            <div class="cc-number">&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226;</div>
             <div class="cc-bottom">
-              <div class="cc-name" id="cc-name-display">YOUR NAME</div>
-              <div class="cc-expiry" id="cc-exp-display">MM/YY</div>
+              <div class="cc-name">YOUR NAME</div>
+              <div class="cc-expiry">MM/YY</div>
             </div>
           </div>
         </div>
@@ -7979,13 +7982,13 @@ function maskCard() {
 &lt;div class="cc-scene"&gt;
   &lt;div class="cc-card"&gt;
     &lt;div class="cc-chip"&gt;&lt;/div&gt;
-    &lt;div class="cc-number" id="cc-num-display"&gt;
+    &lt;div class="cc-number"&gt;
       &amp;#8226;&amp;#8226;&amp;#8226;&amp;#8226; &amp;#8226;&amp;#8226;&amp;#8226;&amp;#8226;
       &amp;#8226;&amp;#8226;&amp;#8226;&amp;#8226; &amp;#8226;&amp;#8226;&amp;#8226;&amp;#8226;
     &lt;/div&gt;
     &lt;div class="cc-bottom"&gt;
-      &lt;div class="cc-name" id="cc-name-display"&gt;YOUR NAME&lt;/div&gt;
-      &lt;div class="cc-expiry" id="cc-exp-display"&gt;MM/YY&lt;/div&gt;
+      &lt;div class="cc-name"&gt;YOUR NAME&lt;/div&gt;
+      &lt;div class="cc-expiry"&gt;MM/YY&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -8011,20 +8014,23 @@ function ccUpdateNum() {
   var display = v
   while (display.length &lt; 16) display += '\u2022'
   var formatted = display.replace(/(.{4})/g, '$1 ').trim()
-  document.getElementById('cc-num-display')
+  this.closest('[data-widget="creditcard"]')
+    .querySelector('.cc-number')
     .textContent = formatted
 }
 
 // Live-update the cardholder name
 function ccUpdateName() {
   var v = this.value.toUpperCase()
-  document.getElementById('cc-name-display')
+  this.closest('[data-widget="creditcard"]')
+    .querySelector('.cc-name')
     .textContent = v || 'YOUR NAME'
 }
 
 // Live-update the expiry date
 function ccUpdateExp() {
-  document.getElementById('cc-exp-display')
+  this.closest('[data-widget="creditcard"]')
+    .querySelector('.cc-expiry')
     .textContent = this.value || 'MM/YY'
 }</code></pre>
         </div>
@@ -8051,18 +8057,18 @@ function ccUpdateExp() {
       </div>
       <div id="mentioninput-demo">
         <div class="mi-wrap">
-          <input class="mi-input" id="mi-field" placeholder="Type @ to mention a user..." ps-input="miSearch" debounce="0" autocomplete="off">
-          <div class="mi-dropdown" id="mi-drop"></div>
+          <input class="mi-input" placeholder="Type @ to mention a user..." ps-input="miSearch" debounce="0" autocomplete="off">
+          <div class="mi-dropdown"></div>
         </div>
         <p style="font-size:var(--fs-xs);color:var(--fg3);padding:0 var(--sp-3) var(--sp-2)">Try typing <code>@a</code> or <code>@s</code></p>
       </div>
       <div id="mentioninput-src" class="hidden">
         <div class="src-block">
           <div class="src-label">HTML</div>
-          <pre><code>&lt;input class="mi-input" id="mi-field"
+          <pre><code>&lt;input class="mi-input"
   placeholder="Type @ to mention..."
   <strong style="color:var(--accent)">ps-input="miSearch"</strong> debounce="0"&gt;
-&lt;div class="mi-dropdown" id="mi-drop"&gt;&lt;/div&gt;</code></pre>
+&lt;div class="mi-dropdown"&gt;&lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
           <div class="src-label">JavaScript</div>
@@ -8074,7 +8080,8 @@ function ccUpdateExp() {
 function miSearch() {
   var v = this.value
   var at = v.lastIndexOf('@')
-  var drop = document.getElementById('mi-drop')
+  var wrap = this.closest('.mi-wrap')
+  var drop = wrap.querySelector('.mi-dropdown')
   if (at === -1 || at === v.length - 1) {
     drop.classList.remove('show'); return
   }
@@ -8084,20 +8091,23 @@ function miSearch() {
   })
   if (!hits.length) { drop.classList.remove('show'); return }
   drop.innerHTML = hits.map(function(u) {
-    return '&lt;div class="mi-item" onclick="miPick(\'' +
-      u.name + '\')"&gt;&lt;span class="mi-avatar"&gt;' +
+    return '&lt;div class="mi-item" ps-click="miPick" ' +
+      'miPick-name="' + u.name + '" debounce="0"&gt;' +
+      '&lt;span class="mi-avatar"&gt;' +
       u.init + '&lt;/span&gt;' + u.name + '&lt;/div&gt;'
   }).join('')
+  __.Popstart()
   drop.classList.add('show')
 }
-function miPick(name) {
-  var el = document.getElementById('mi-field')
-  var at = el.value.lastIndexOf('@')
-  el.value = el.value.substring(0, at) +
+function miPick(name, el) {
+  var wrap = el.closest('.mi-wrap')
+  var field = wrap.querySelector('.mi-input')
+  var at = field.value.lastIndexOf('@')
+  field.value = field.value.substring(0, at) +
     '@' + name + ' '
-  document.getElementById('mi-drop')
+  wrap.querySelector('.mi-dropdown')
     .classList.remove('show')
-  el.focus()
+  field.focus()
 }</code></pre>
         </div>
       </div>
@@ -10481,10 +10491,10 @@ function openGalleryItem(idx) {
         </div>
       </div>
       <div id="beforeafter-demo">
-        <div class="ba-container" id="ba-slider" onmousedown="initCompare(event)" ontouchstart="initCompare(event)">
+        <div class="ba-container" onmousedown="initCompare(event)" ontouchstart="initCompare(event)">
           <div class="ba-layer ba-before" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)">Before</div>
-          <div class="ba-layer ba-after" id="ba-after" style="background:linear-gradient(135deg,#e08a4a,#f0a060,#f5c542)">After</div>
-          <div class="ba-handle" id="ba-handle"></div>
+          <div class="ba-layer ba-after" style="background:linear-gradient(135deg,#e08a4a,#f0a060,#f5c542)">After</div>
+          <div class="ba-handle"></div>
           <span class="ba-label left">Before</span>
           <span class="ba-label right">After</span>
         </div>
@@ -10493,19 +10503,21 @@ function openGalleryItem(idx) {
       <div id="beforeafter-src" class="hidden">
         <div class="src-block">
           <div class="src-label">HTML</div>
-          <pre><code>&lt;div class="ba-container" id="ba-slider"
-  <strong style="color:var(--accent)">ps-mousedown="initCompare"</strong>&gt;
+          <pre><code>&lt;div class="ba-container"
+  <strong style="color:var(--accent)">onmousedown="initCompare(event)"</strong>
+  ontouchstart="initCompare(event)"&gt;
   &lt;div class="ba-layer ba-before"&gt;Before&lt;/div&gt;
-  &lt;div class="ba-layer ba-after" id="ba-after"&gt;After&lt;/div&gt;
-  &lt;div class="ba-handle" id="ba-handle"&gt;&lt;/div&gt;
+  &lt;div class="ba-layer ba-after"&gt;After&lt;/div&gt;
+  &lt;div class="ba-handle"&gt;&lt;/div&gt;
 &lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
           <div class="src-label">JavaScript</div>
           <pre><code>function initCompare(ev) {
-  var slider = document.getElementById('ba-slider')
-  var after = document.getElementById('ba-after')
-  var handle = document.getElementById('ba-handle')
+  var slider = ev.currentTarget ||
+    ev.target.closest('.ba-container')
+  var after = slider.querySelector('.ba-after')
+  var handle = slider.querySelector('.ba-handle')
   function move(e) {
     var rect = slider.getBoundingClientRect()
     var x = (e.touches ? e.touches[0].clientX : e.clientX)
@@ -15790,7 +15802,7 @@ function scrollToBottom() {
       <div id="scrollprogress-demo">
         <div class="sp-wrapper">
           <div class="sp-bar"><div class="sp-fill" id="sp-fill"></div></div>
-          <div class="sp-content" id="sp-scroller" onscroll="spUpdate()">
+          <div class="sp-content" onscroll="spUpdate(this)">
             <p><strong>Chapter 1: The Beginning</strong></p>
             <p>In the world of web development, interactivity has always been the bridge between static content and dynamic experiences. For decades, developers have relied on complex frameworks to make their pages come alive.</p>
             <p><strong>Chapter 2: A New Approach</strong></p>
@@ -15810,17 +15822,17 @@ function scrollToBottom() {
           <pre><code>&lt;div class="sp-bar"&gt;
   &lt;div class="sp-fill" id="sp-fill"&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="sp-content" <strong style="color:var(--accent)">onscroll="spUpdate()"</strong>&gt;
+&lt;div class="sp-content" <strong style="color:var(--accent)">onscroll="spUpdate(this)"</strong>&gt;
   &lt;p&gt;Scrollable content...&lt;/p&gt;
 &lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
           <div class="src-label">JavaScript</div>
-          <pre><code>function spUpdate() {
-  var el = document.getElementById('sp-scroller')
+          <pre><code>function spUpdate(el) {
   var pct = el.scrollTop /
     (el.scrollHeight - el.clientHeight) * 100
-  document.getElementById('sp-fill')
+  el.closest('.sp-wrapper')
+    .querySelector('.sp-fill')
     .style.width = pct + '%'
 }</code></pre>
         </div>
@@ -18618,7 +18630,7 @@ details[open] summary::after {
       </div>
       <div id="scrollanim-demo">
         <p style="font-size:var(--fs-xs);color:var(--fg3);padding:var(--sp-2) var(--sp-3) 0">Scroll down inside the container to reveal items.</p>
-        <div class="sr-scroll" id="sr-scroller">
+        <div class="sr-scroll">
           <div class="sr-item"><h4>First Section</h4><p>Fades in from below as you scroll.</p></div>
           <div class="sr-item"><h4>Second Section</h4><p>Each item animates independently.</p></div>
           <div class="sr-item"><h4>Third Section</h4><p>Uses IntersectionObserver for performance.</p></div>
@@ -18630,7 +18642,7 @@ details[open] summary::after {
       <div id="scrollanim-src" class="hidden">
         <div class="src-block">
           <div class="src-label">HTML</div>
-          <pre><code>&lt;div class="sr-scroll" id="sr-scroller"&gt;
+          <pre><code>&lt;div class="sr-scroll"&gt;
   &lt;div class="sr-item"&gt;
     &lt;h4&gt;Section&lt;/h4&gt;
     &lt;p&gt;Content reveals on scroll.&lt;/p&gt;
@@ -18641,15 +18653,20 @@ details[open] summary::after {
         <div class="src-block">
           <div class="src-label">JavaScript</div>
           <pre><code>function initScrollReveal() {
-  var scroller = document.getElementById('sr-scroller')
-  var obs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting)
-        entry.target.classList.add('sr-visible')
+  document.querySelectorAll('.sr-scroll')
+    .forEach(function(scroller) {
+      var obs = new IntersectionObserver(
+        function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting)
+              entry.target.classList.add('sr-visible')
+          })
+        },
+        { root: scroller, threshold: 0.2 }
+      )
+      scroller.querySelectorAll('.sr-item')
+        .forEach(function(el) { obs.observe(el) })
     })
-  }, { root: scroller, threshold: 0.2 })
-  scroller.querySelectorAll('.sr-item')
-    .forEach(function(el) { obs.observe(el) })
 }
 // called on page load
 initScrollReveal()</code></pre>
@@ -19638,6 +19655,17 @@ function stepVal(selector, step, min, max) {
   el.textContent = v
 }
 
+function widgetRoot(el, widgetName) {
+  if (!el || !el.closest) return null
+  var selector = widgetName ? '.card[data-widget="' + widgetName + '"]' : '.card[data-widget]'
+  return el.closest(selector)
+}
+
+function widgetFind(el, widgetName, selector) {
+  var root = widgetRoot(el, widgetName)
+  return root ? root.querySelector(selector) : null
+}
+
 // ══════════════════════════════════════════════
 // THEME
 // ══════════════════════════════════════════════
@@ -19987,22 +20015,26 @@ function stepTo(n) { __.trigger('#sdot' + n, 'click') }
 // PAGINATION
 // ══════════════════════════════════════════════
 function paginatePrev() {
-  var active = document.querySelector('.pagination .page-btn.active[data-page]');
+  var pager = this && this.closest ? this.closest('.pagination') : null
+  if (!pager) return
+  var active = pager.querySelector('.page-btn.active[data-page]');
   if (active) {
     var cur = parseInt(active.getAttribute('data-page'));
     var prev = cur > 1 ? cur - 1 : 1;
-    var btn = document.querySelector('.pagination .page-btn[data-page="' + prev + '"]');
+    var btn = pager.querySelector('.page-btn[data-page="' + prev + '"]');
     if (btn) __.trigger(btn, 'click');
   }
 }
 function paginateNext() {
-  var active = document.querySelector('.pagination .page-btn.active[data-page]');
+  var pager = this && this.closest ? this.closest('.pagination') : null
+  if (!pager) return
+  var active = pager.querySelector('.page-btn.active[data-page]');
   if (active) {
     var cur = parseInt(active.getAttribute('data-page'));
-    var pages = document.querySelectorAll('.pagination .page-btn[data-page]');
+    var pages = pager.querySelectorAll('.page-btn[data-page]');
     var max = pages.length;
     var next = cur < max ? cur + 1 : max;
-    var btn = document.querySelector('.pagination .page-btn[data-page="' + next + '"]');
+    var btn = pager.querySelector('.page-btn[data-page="' + next + '"]');
     if (btn) __.trigger(btn, 'click');
   }
 }
@@ -20239,9 +20271,11 @@ function countUp(target, end, duration, prefix) {
 
 /* Before/After comparison slider */
 function initCompare(ev) {
-  var slider = document.getElementById('ba-slider')
-  var after = document.getElementById('ba-after')
-  var handle = document.getElementById('ba-handle')
+  var slider = ev.currentTarget || ev.target.closest('.ba-container')
+  if (!slider) return
+  var after = slider.querySelector('.ba-after')
+  var handle = slider.querySelector('.ba-handle')
+  if (!after || !handle) return
   function move(e) {
     e.preventDefault()
     var rect = slider.getBoundingClientRect()
@@ -20266,29 +20300,32 @@ function initCompare(ev) {
 
 // ── Image Zoom ──
 ;(function() {
-  var box = document.getElementById('imgzoom-surface')
-  var lens = document.getElementById('imgzoom-lens')
-  if (!box || !lens) return
-  var zoomFactor = 3
-  var lensSize = 120
-  var halfLens = lensSize / 2
-  var container = document.getElementById('imgzoom-box')
-  var img = container ? container.querySelector('.imgzoom-img') : null
-  var imgReady = img && img.complete
-  if (img && !imgReady) img.addEventListener('load', function() { imgReady = true })
-  box.addEventListener('mousemove', function(e) {
-    var rect = box.getBoundingClientRect()
-    var x = e.clientX - rect.left
-    var y = e.clientY - rect.top
-    lens.style.left = (x - halfLens) + 'px'
-    lens.style.top = (y - halfLens) + 'px'
-    lens.style.display = 'block'
-    lens.style.backgroundImage = imgReady ? 'url(' + img.src + ')' : 'linear-gradient(135deg,#1a2a1a,#0a1a0a)'
-    lens.style.backgroundSize = (rect.width * zoomFactor) + 'px ' + (rect.height * zoomFactor) + 'px'
-    lens.style.backgroundPosition = (-x * zoomFactor + halfLens) + 'px ' + (-y * zoomFactor + halfLens) + 'px'
-  })
-  box.addEventListener('mouseleave', function() {
-    lens.style.display = 'none'
+  document.querySelectorAll('.imgzoom-container').forEach(function(container) {
+    if (container.dataset.zoomInit) return
+    container.dataset.zoomInit = '1'
+    var box = container.querySelector('.imgzoom-surface')
+    var lens = container.querySelector('.imgzoom-lens')
+    if (!box || !lens) return
+    var zoomFactor = 3
+    var lensSize = 120
+    var halfLens = lensSize / 2
+    var img = container.querySelector('.imgzoom-img')
+    var imgReady = img && img.complete
+    if (img && !imgReady) img.addEventListener('load', function() { imgReady = true })
+    box.addEventListener('mousemove', function(e) {
+      var rect = box.getBoundingClientRect()
+      var x = e.clientX - rect.left
+      var y = e.clientY - rect.top
+      lens.style.left = (x - halfLens) + 'px'
+      lens.style.top = (y - halfLens) + 'px'
+      lens.style.display = 'block'
+      lens.style.backgroundImage = imgReady ? 'url(' + img.src + ')' : 'linear-gradient(135deg,#1a2a1a,#0a1a0a)'
+      lens.style.backgroundSize = (rect.width * zoomFactor) + 'px ' + (rect.height * zoomFactor) + 'px'
+      lens.style.backgroundPosition = (-x * zoomFactor + halfLens) + 'px ' + (-y * zoomFactor + halfLens) + 'px'
+    })
+    box.addEventListener('mouseleave', function() {
+      lens.style.display = 'none'
+    })
   })
 })()
 
@@ -20617,9 +20654,14 @@ function wrStop() {
 
 /* ── Scroll Progress ── */
 function spUpdate() {
-  var el = document.getElementById('sp-scroller')
-  var pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100
-  document.getElementById('sp-fill').style.width = pct + '%'
+  var el = (arguments[0] && arguments[0].nodeType === 1) ? arguments[0] : this
+  if (!el || !el.closest) return
+  var wrap = el.closest('.sp-wrapper')
+  var fill = wrap ? wrap.querySelector('.sp-fill') : null
+  if (!fill) return
+  var total = el.scrollHeight - el.clientHeight
+  var pct = total > 0 ? (el.scrollTop / total * 100) : 0
+  fill.style.width = pct + '%'
 }
 
 /* ── Credit Card Preview ── */
@@ -20628,14 +20670,17 @@ function ccUpdateNum() {
   var display = v
   while (display.length < 16) display += '\u2022'
   var formatted = display.replace(/(.{4})/g, '$1 ').trim()
-  document.getElementById('cc-num-display').textContent = formatted
+  var out = widgetFind(this, 'creditcard', '.cc-number')
+  if (out) out.textContent = formatted
 }
 function ccUpdateName() {
   var v = this.value.toUpperCase()
-  document.getElementById('cc-name-display').textContent = v || 'YOUR NAME'
+  var out = widgetFind(this, 'creditcard', '.cc-name')
+  if (out) out.textContent = v || 'YOUR NAME'
 }
 function ccUpdateExp() {
-  document.getElementById('cc-exp-display').textContent = this.value || 'MM/YY'
+  var out = widgetFind(this, 'creditcard', '.cc-expiry')
+  if (out) out.textContent = this.value || 'MM/YY'
 }
 
 /* ── @Mention Input ── */
@@ -20647,7 +20692,9 @@ var miUsers = [
 function miSearch() {
   var v = this.value
   var at = v.lastIndexOf('@')
-  var drop = document.getElementById('mi-drop')
+  var wrap = this.closest('.mi-wrap')
+  var drop = wrap ? wrap.querySelector('.mi-dropdown') : null
+  if (!drop) return
   if (at === -1 || at === v.length - 1) {
     drop.classList.remove('show'); return
   }
@@ -20657,31 +20704,38 @@ function miSearch() {
   })
   if (!hits.length) { drop.classList.remove('show'); return }
   drop.innerHTML = hits.map(function(u) {
-    return '<div class="mi-item" onclick="miPick(\'' + u.name + '\')"><span class="mi-avatar">' + u.init + '</span>' + u.name + '</div>'
+    return '<div class="mi-item" ps-click="miPick" miPick-name="' + __.safify(u.name) + '" debounce="0"><span class="mi-avatar">' + u.init + '</span>' + u.name + '</div>'
   }).join('')
+  __.Popstart()
   drop.classList.add('show')
 }
-function miPick(name) {
-  var el = document.getElementById('mi-field')
-  var at = el.value.lastIndexOf('@')
-  el.value = el.value.substring(0, at) + '@' + name + ' '
-  document.getElementById('mi-drop').classList.remove('show')
-  el.focus()
+function miPick(name, el) {
+  var item = el || this
+  var wrap = item && item.closest ? item.closest('.mi-wrap') : null
+  var field = wrap ? wrap.querySelector('.mi-input') : null
+  var drop = wrap ? wrap.querySelector('.mi-dropdown') : null
+  if (!field || !drop) return
+  var at = field.value.lastIndexOf('@')
+  field.value = field.value.substring(0, at) + '@' + name + ' '
+  drop.classList.remove('show')
+  field.focus()
 }
 
 /* ── Scroll Reveal (IntersectionObserver) ── */
 function initScrollReveal() {
-  var scroller = document.getElementById('sr-scroller')
-  if (!scroller) return
-  var obs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('sr-visible')
-      }
+  document.querySelectorAll('.sr-scroll').forEach(function(scroller) {
+    if (scroller.dataset.srInit) return
+    scroller.dataset.srInit = '1'
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('sr-visible')
+        }
+      })
+    }, {root: scroller, threshold: 0.2})
+    scroller.querySelectorAll('.sr-item').forEach(function(el) {
+      obs.observe(el)
     })
-  }, {root: scroller, threshold: 0.2})
-  scroller.querySelectorAll('.sr-item').forEach(function(el) {
-    obs.observe(el)
   })
 }
 if (document.readyState === 'loading') {
