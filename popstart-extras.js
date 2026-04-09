@@ -472,10 +472,10 @@ __.notifySilent=(message,level,timeout,title,detail,meta)=>
 		:__.notify({message,level,timeout,title,detail,meta,visible:false})
 
 __.alert=(msg,classes,timeout)=>__.notify({message:msg,level:classes,timeout})
-__.alertError=(msg,timeout)=>{__.notify({title:'Error',message:msg,level:'error',timeout});danger(msg)}
-__.alertSuccess=(msg,timeout)=>{__.notify({title:'Success',message:msg,level:'success',timeout});success(msg)}
-__.alertWarning=(msg,timeout)=>{__.notify({title:'Warning',message:msg,level:'warning',timeout});warn(msg)}
-__.alertInfo=(msg,timeout)=>{__.notify({title:'Info',message:msg,level:'info',timeout});info(msg)}
+__.alertError=(msg,timeout)=>__.notify({title:'Error',message:msg,level:'error',timeout})
+__.alertSuccess=(msg,timeout)=>__.notify({title:'Success',message:msg,level:'success',timeout})
+__.alertWarning=(msg,timeout)=>__.notify({title:'Warning',message:msg,level:'warning',timeout})
+__.alertInfo=(msg,timeout)=>__.notify({title:'Info',message:msg,level:'info',timeout})
 __.alertClose=id=>__.notificationClose(id)
 
 // upgrade __.error: try .error-msg element first (core behavior), then visual alert
@@ -490,7 +490,6 @@ __.error=(msg,timeout)=>{
 		level:'error',
 		timeout
 	})
-	danger(em)
 }
 
 // --- cookies ---
