@@ -373,6 +373,8 @@ Toast notifications render in a bottom-right stack, write into `__.data.notifica
 |----------|-------------|
 | `__.notify(message [,level, timeout, title, detail, visible, meta])` | Create a notification object + optional toast |
 | `__.notifySilent(message [,level, timeout, title, detail, meta])` | Store + hook a notification without showing a toast |
+| `__.notificationUse(fn)` | Subscribe plugin/app code to notification lifecycle payloads |
+| `__.notificationUnuse(fn)` | Remove a notification lifecycle subscriber |
 | `__.alert(msg [,classes, timeout])` | Compatibility wrapper for `__.notify()` |
 | `__.alertError(msg [,timeout])` | Error toast wrapper |
 | `__.alertSuccess(msg [,timeout])` | Success toast wrapper |
@@ -381,7 +383,7 @@ Toast notifications render in a bottom-right stack, write into `__.data.notifica
 | `__.alertClose([id])` | Dismiss one or all active notifications |
 | `__.timedclass(selector, remove, add [,time])` | Swap classes, revert after time ms (default 2000) |
 
-Each notification entry uses `{id, level, title, message, detail, visible, timeout, meta, createdAt}` and is pruned from `__.data.notifications` when dismissed or expired. Set `__.config.notificationHandler = function(note){ ... }` for optional side effects such as backend logging.
+Each notification entry uses `{id, level, title, message, detail, visible, timeout, meta, createdAt}` and is pruned from `__.data.notifications` when dismissed or expired. Set `__.config.notificationHandler = function(note){ ... }` for optional side effects such as backend logging, or `__.config.notificationRenderer = function(note){ ... }` to supply a custom toast element (or `false` to suppress rendering). Plugins and app code can also subscribe via `__.notificationUse(fn)` or listen for `popstart:notification` on `document`.
 
 Extras also upgrades `__.error()` — tries `.error-msg` element first (core behavior), then falls back to an error toast with optional technical detail.
 

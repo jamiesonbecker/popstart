@@ -162,7 +162,9 @@ __.populate=function(selector,readdatapath){
 __.config.notificationTimeout=__.config.notificationTimeout||5000
 __.config.notificationMaxVisible=__.config.notificationMaxVisible||6
 __.config.notificationHandler=__.config.notificationHandler||null
+__.config.notificationRenderer=__.config.notificationRenderer||null
 __.data.notifications=Array.isArray(__.data.notifications)?__.data.notifications:[]
+__.data.notificationListeners=Array.isArray(__.data.notificationListeners)?__.data.notificationListeners:[]
 
 ;(()=>{
 	const id='ps-notify-style'
@@ -316,6 +318,24 @@ __.notificationEnsureStack=()=>{
 	return stack
 }
 
+__.notificationUse=fn=>{
+	if(typeof fn!=='function')return fn
+	if(!__.data.notificationListeners.includes(fn))__.data.notificationListeners.push(fn)
+	return fn
+}
+__.notificationUnuse=fn=>{
+	__.data.notificationListeners=__.data.notificationListeners.filter(f=>f!==fn)
+	return fn
+}
+__.notificationEmit=(type,note,extra={})=>{
+	let payload=Object.assign({type,note},extra)
+	__.data.notificationListeners.slice().forEach(fn=>{
+		try{fn(payload)}catch(e){error('notification listener failed',e)}
+	})
+	try{document.dispatchEvent(new CustomEvent('popstart:notification',{detail:payload}))}catch(e){}
+	return payload
+}
+
 __.notificationNormalize=(message,level,timeout,title,detail,visible,meta)=>{
 	let note=message&&typeof message==='object'&&!Array.isArray(message)
 		?Object.assign({},message)
@@ -352,6 +372,20 @@ __.notificationPrune=()=>{
 
 __.notificationRender=note=>{
 	if(!note.visible)return
+	__.notificationEmit('before-render',note)
+	if(typeof __.config.notificationRenderer==='function'){
+		let out=__.config.notificationRenderer(note)
+		if(out===false)return
+		if(out&&out.nodeType===1){
+			let stack=__.notificationEnsureStack()
+			stack.appendChild(out)
+			note.el=out
+			note.el.dataset.noteId=note.id
+			if(note.timeout>0)note.timer=setTimeout(()=>__.notificationClose(note.id),note.timeout)
+			__.notificationEmit('render',note,{element:note.el,custom:true})
+			return
+		}
+	}
 	let stack=__.notificationEnsureStack()
 	let el=document.createElement('div')
 	el.className='ps-note '+note.classes.join(' ')
@@ -398,6 +432,7 @@ __.notificationRender=note=>{
 	stack.appendChild(el)
 	note.el=el
 	if(note.timeout>0)note.timer=setTimeout(()=>__.notificationClose(note.id),note.timeout)
+	__.notificationEmit('render',note,{element:el,custom:false})
 }
 
 __.notificationClose=id=>{
@@ -410,6 +445,7 @@ __.notificationClose=id=>{
 		note.open=false
 		if(note.timer)clearTimeout(note.timer)
 	}
+	__.notificationEmit('close',note||{id},{id})
 	let el=document.querySelector(`.ps-note[data-note-id="${id}"]`)
 	if(!el){__.notificationPrune();return}
 	el.classList.add('closing')
@@ -422,6 +458,7 @@ __.notificationClose=id=>{
 __.notify=(message,level,timeout,title,detail,visible,meta)=>{
 	let note=__.notificationNormalize(message,level,timeout,title,detail,visible,meta)
 	__.data.notifications.push(note)
+	__.notificationEmit('create',note)
 	if(typeof __.config.notificationHandler==='function'){
 		try{__.config.notificationHandler(note)}catch(e){error('notificationHandler failed',e)}
 	}
