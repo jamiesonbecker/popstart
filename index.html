@@ -19107,14 +19107,14 @@ initScrollReveal()</code></pre>
         </div>
       </div>
       <div id="splitpane-demo">
-        <div class="spp-container" id="spp-container">
-          <div class="spp-left" id="spp-left">
+        <div class="spp-container">
+          <div class="spp-left">
             <div class="spp-label">Editor</div>
             <p>This is the left pane. Drag the divider to resize. Content reflows automatically as the pane width changes.</p>
             <p style="margin-top:var(--sp-2)">Useful for code editors, file managers, or any side-by-side comparison layout.</p>
           </div>
-          <div class="spp-divider" id="spp-divider" onmousedown="sppDrag(event)" ontouchstart="sppDrag(event)"></div>
-          <div class="spp-right" id="spp-right">
+          <div class="spp-divider" onmousedown="sppDrag(event)" ontouchstart="sppDrag(event)"></div>
+          <div class="spp-right">
             <div class="spp-label">Preview</div>
             <p>This is the right pane. It grows and shrinks inversely with the left pane.</p>
             <p style="margin-top:var(--sp-2)">The divider handle shows a visual indicator and highlights on hover.</p>
@@ -19124,21 +19124,23 @@ initScrollReveal()</code></pre>
       <div id="splitpane-src" class="hidden">
         <div class="src-block">
           <div class="src-label">HTML</div>
-          <pre><code>&lt;div class="spp-container" id="spp-container"&gt;
-  &lt;div class="spp-left" id="spp-left"&gt;Left pane&lt;/div&gt;
-  &lt;div class="spp-divider" id="spp-divider"
+          <pre><code>&lt;div class="spp-container"&gt;
+  &lt;div class="spp-left"&gt;Left pane&lt;/div&gt;
+  &lt;div class="spp-divider"
     <strong style="color:var(--accent)">onmousedown="sppDrag(event)"</strong>
     ontouchstart="sppDrag(event)"&gt;&lt;/div&gt;
-  &lt;div class="spp-right" id="spp-right"&gt;Right pane&lt;/div&gt;
+  &lt;div class="spp-right"&gt;Right pane&lt;/div&gt;
 &lt;/div&gt;</code></pre>
         </div>
         <div class="src-block">
           <div class="src-label">JavaScript</div>
           <pre><code>function sppDrag(ev) {
   ev.preventDefault()
-  var container = document.getElementById('spp-container')
-  var left = document.getElementById('spp-left')
-  var right = document.getElementById('spp-right')
+  var divider = ev.currentTarget ||
+    ev.target.closest('.spp-divider')
+  var container = divider.closest('.spp-container')
+  var left = container.querySelector('.spp-left')
+  var right = container.querySelector('.spp-right')
   function move(e) {
     var rect = container.getBoundingClientRect()
     var x = (e.touches ? e.touches[0].clientX : e.clientX)
@@ -21088,9 +21090,12 @@ function mpSeek(ev) {
 /* ── Split Pane ── */
 function sppDrag(ev) {
   ev.preventDefault()
-  var container = document.getElementById('spp-container')
-  var left = document.getElementById('spp-left')
-  var right = document.getElementById('spp-right')
+  var divider = ev.currentTarget || ev.target.closest('.spp-divider')
+  if (!divider) return
+  var container = divider.closest('.spp-container')
+  var left = container ? container.querySelector('.spp-left') : null
+  var right = container ? container.querySelector('.spp-right') : null
+  if (!container || !left || !right) return
   function move(e) {
     var rect = container.getBoundingClientRect()
     var x = (e.touches ? e.touches[0].clientX : e.clientX)

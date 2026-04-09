@@ -438,6 +438,7 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
   var activeCat  = 'all';
   var indexDoc   = null;
   var indexStyles = '';
+  var indexScripts = '';
   var libCoreJs  = '';  // popstart-core.js contents (for standalone export)
   var libExtrasJs = ''; // popstart-extras.js contents
 
@@ -529,10 +530,17 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
       styles.forEach(function(s) { cssTexts.push(s.textContent); });
       indexStyles = cssTexts.join('\n');
 
-      // Collect all widget cards (scoped to grid sections, skip hero cards)
-      indexDoc.querySelectorAll('#widget-grid .card[data-widget][data-cat], #widget-grid-2 .card[data-widget][data-cat]').forEach(function(card) {
+      var scripts = indexDoc.querySelectorAll('script');
+      var scriptTexts = [];
+      scripts.forEach(function(s) {
+        if (s.textContent && s.textContent.trim()) scriptTexts.push(s.textContent);
+      });
+      indexScripts = scriptTexts.join('\n\n');
+
+      // Collect all real widget cards, including home-page demos such as sandbox.
+      indexDoc.querySelectorAll('.card[data-widget]').forEach(function(card) {
         var name = card.dataset.widget;
-        var cat  = card.dataset.cat;
+        var cat  = card.dataset.cat || 'home';
         var h3   = card.querySelector('h3');
         var sub  = card.querySelector('.sub');
         allWidgets.push({
@@ -600,8 +608,8 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     }
 
     // Fallback: if no source tab, derive from the demo itself
-    if (!htmlCode && demoDiv) {
-      htmlCode = cleanDemoHtml(demoDiv);
+    if (!htmlCode) {
+      htmlCode = demoDiv ? cleanDemoHtml(demoDiv) : demoHtml;
     }
 
     // CSS extraction priority:
@@ -631,6 +639,9 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
         jsCode = parts2.join('\n\n');
       }
     }
+    if (!jsCode && widget.name === 'sandbox' && indexScripts) {
+      jsCode = extractSandboxJs(indexScripts);
+    }
 
     // Populate editor tabs
     $taHtml.value = htmlCode || '<!-- No HTML source available -->';
@@ -644,7 +655,7 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
 
     renderSandboxedFrame(
       $demo,
-      buildStandaloneFile(true, 'demo', htmlCode || cleanDemoHtml(demoDiv) || demoHtml, cssCode, jsCode),
+      buildStandaloneFile(true, 'demo', htmlCode || demoHtml, cssCode, jsCode),
       'demo'
     );
 
@@ -681,6 +692,15 @@ code,.snippet,pre{font-family:'JetBrains Mono',monospace}
     var clone = el.cloneNode(true);
     clone.querySelectorAll('[id$="-src"]').forEach(function(s) { s.remove(); });
     return clone.innerHTML.trim();
+  }
+
+  function extractSandboxJs(fullJs) {
+    var marker = '// LIVE SANDBOX';
+    var start = fullJs.indexOf(marker);
+    if (start === -1) return '';
+    var nextSection = fullJs.indexOf('// ══════════════════════════════════════════════', start + marker.length);
+    if (nextSection === -1) nextSection = fullJs.length;
+    return fullJs.substring(start, nextSection).trim();
   }
 
   function renderSandboxedFrame(container, srcdoc, frameId) {

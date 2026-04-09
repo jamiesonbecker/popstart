@@ -48,7 +48,7 @@ go run .
 # or: go run . 8876
 ```
 
-It binds to `127.0.0.1` only and rejects non-local `Host` / `Origin` combinations for `/api/*` and `/ws`. The older `server.py` is still present for compatibility, but the Go server is the preferred path.
+It binds to `127.0.0.1` only and rejects non-local `Host` / `Origin` combinations for `/api/*` and `/ws`.
 
 ## How It Works
 
