@@ -170,7 +170,7 @@ When `popstart-extras.js` is loaded, these are available:
 
 **DOM Extras**: `__.empty(selector)`, `__.append(selector, html)`, `__.focus(selector)`, `__.scrollTo(selector)`, `__.resetForm(selector)`.
 
-**Alerts**: `__.alert(msg)`, `__.alertError(msg)`, `__.alertSuccess(msg)`, `__.alertWarning(msg)`, `__.alertInfo(msg)`. Visual banners, auto-dismiss.
+**Notifications**: `__.notify(message, level, timeout, title, detail, visible, meta)` writes to `__.data.notifications` and optionally shows a toast. `__.notifySilent(...)` skips the toast. `__.alert(msg)`, `__.alertError(msg)`, `__.alertSuccess(msg)`, `__.alertWarning(msg)`, `__.alertInfo(msg)` are compatibility wrappers over the notification system.
 
 **Cookies**: `__.writeCookie(name, value, days)`, `__.getCookie(name)`, `__.removeCookie(name)`, `__.succeedIfCookie(name, value)`, `__.failIfCookie(name, value)`.
 

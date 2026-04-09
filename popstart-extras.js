@@ -157,52 +157,302 @@ __.populate=function(selector,readdatapath){
 	})
 }
 
-// --- alerts ---
+// --- notifications / toasts ---
+
+__.config.notificationTimeout=__.config.notificationTimeout||5000
+__.config.notificationMaxVisible=__.config.notificationMaxVisible||6
+__.config.notificationHandler=__.config.notificationHandler||null
+__.data.notifications=Array.isArray(__.data.notifications)?__.data.notifications:[]
 
 ;(()=>{
+	const id='ps-notify-style'
+	if(document.getElementById(id))return
 	const s=document.createElement('style')
-	s.textContent='.ps-alert{position:fixed;top:0;left:0;right:0;padding:.75rem 1.25rem;'
-		+'display:flex;align-items:center;justify-content:space-between;z-index:9999;'
-		+'height:3rem;box-shadow:0 0 1rem #0009;font-size:1.25rem;color:#fff;'
-		+'text-shadow:-1px -1px 1px #0002;animation:ps-fadein .3s}'
-		+'.ps-alert .ps-close{cursor:pointer;background:none;border:none;'
-		+'color:#fff;font-size:1.5rem;padding:0 .5rem}'
-		+'.ps-alert.success{background:#094}'
-		+'.ps-alert.info{background:#33d}'
-		+'.ps-alert.warning{background:#c90;color:#333}'
-		+'.ps-alert.error,.ps-alert.danger{background:#d33}'
-		+'@keyframes ps-fadein{from{opacity:0;transform:translateY(-100%)}'
-		+'to{opacity:1;transform:translateY(0)}}'
+	s.id=id
+	s.textContent=`
+.ps-note-stack{
+	position:fixed;
+	right:1rem;
+	bottom:1rem;
+	z-index:9999;
+	display:flex;
+	flex-direction:column-reverse;
+	align-items:flex-end;
+	gap:.65rem;
+	max-width:min(26rem,calc(100vw - 1.5rem));
+	pointer-events:none
+}
+.ps-note{
+	--ps-note-accent:#5aaadd;
+	pointer-events:auto;
+	width:min(24rem,calc(100vw - 1.5rem));
+	opacity:.88;
+	transform:translate3d(24px,16px,0) scale(.97);
+	animation:ps-note-in .32s cubic-bezier(.2,.8,.2,1) forwards
+}
+.ps-note.closing{
+	animation:ps-note-out .18s ease-in forwards
+}
+.ps-note-card{
+	position:relative;
+	padding:.8rem .9rem .85rem;
+	border:1px solid transparent;
+	border-radius:14px;
+	background:
+		linear-gradient(180deg,rgba(34,37,43,.94),rgba(20,22,27,.94)) padding-box,
+		linear-gradient(135deg,var(--ps-note-accent),rgba(255,255,255,.15),rgba(255,255,255,.04)) border-box;
+	box-shadow:0 18px 40px rgba(0,0,0,.28);
+	backdrop-filter:blur(18px) saturate(1.1);
+	-webkit-backdrop-filter:blur(18px) saturate(1.1);
+	color:#f2eee8;
+	animation:ps-note-float var(--ps-note-time,5000ms) linear forwards
+}
+.ps-note.success{--ps-note-accent:#43c488}
+.ps-note.info{--ps-note-accent:#58a7e7}
+.ps-note.warning{--ps-note-accent:#e0b24c}
+.ps-note.error,.ps-note.danger{--ps-note-accent:#ef5d73}
+.ps-note-head{
+	display:flex;
+	align-items:flex-start;
+	gap:.75rem
+}
+.ps-note-copy{
+	min-width:0;
+	flex:1
+}
+.ps-note-title{
+	display:block;
+	font-size:.88rem;
+	font-weight:700;
+	line-height:1.3;
+	color:#fff4ec
+}
+.ps-note-msg{
+	display:block;
+	font-size:.82rem;
+	line-height:1.45;
+	color:rgba(255,244,236,.92)
+}
+.ps-note-title+.ps-note-msg{
+	margin-top:.22rem
+}
+.ps-note-close{
+	appearance:none;
+	border:none;
+	background:none;
+	color:rgba(255,244,236,.72);
+	font-size:1.1rem;
+	line-height:1;
+	padding:.05rem;
+	cursor:pointer;
+	transition:color .15s,transform .15s
+}
+.ps-note-close:hover{
+	color:#fff;
+	transform:scale(1.08)
+}
+.ps-note-detail{
+	margin-top:.55rem;
+	border-top:1px solid rgba(255,255,255,.08);
+	padding-top:.45rem
+}
+.ps-note-detail summary{
+	cursor:pointer;
+	font-size:.72rem;
+	font-weight:600;
+	letter-spacing:.02em;
+	color:rgba(255,244,236,.62);
+	list-style:none
+}
+.ps-note-detail summary::-webkit-details-marker{
+	display:none
+}
+.ps-note-detail pre{
+	margin-top:.45rem;
+	padding:.6rem .7rem;
+	border-radius:10px;
+	background:rgba(0,0,0,.22);
+	color:rgba(255,244,236,.8);
+	font-size:.72rem;
+	line-height:1.45;
+	white-space:pre-wrap;
+	word-break:break-word
+}
+@keyframes ps-note-in{
+	from{opacity:0;transform:translate3d(24px,16px,0) scale(.97)}
+	to{opacity:.88;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes ps-note-out{
+	from{opacity:.88;transform:translate3d(0,0,0) scale(1)}
+	to{opacity:0;transform:translate3d(18px,8px,0) scale(.96)}
+}
+@keyframes ps-note-float{
+	from{transform:translateY(0)}
+	to{transform:translateY(-8px)}
+}
+@media(max-width:600px){
+	.ps-note-stack{
+		right:.75rem;
+		left:.75rem;
+		bottom:.75rem;
+		max-width:none
+	}
+	.ps-note{
+		width:100%
+	}
+}`
 	document.head.appendChild(s)
 })()
 
-__.alert=(msg,classes,timeout)=>{
-	timeout=timeout||15000
-	__.del(".ps-alert")
-	const m=document.createElement("div")
-	m.textContent=msg
-	m.classList.add("ps-alert")
-	if(classes)classes.split(/[, ]/).filter(Boolean).forEach(c=>m.classList.add(c))
-	const btn=document.createElement("button")
-	btn.classList.add("ps-close")
-	btn.innerHTML='&times;'
-	btn.addEventListener("mouseup",()=>m.remove())
-	m.appendChild(btn)
-	document.body.appendChild(m)
-	setTimeout(()=>m.remove(),timeout)
+__.notificationEnsureStack=()=>{
+	let stack=document.getElementById('ps-note-stack')
+	if(stack)return stack
+	stack=document.createElement('div')
+	stack.id='ps-note-stack'
+	stack.className='ps-note-stack'
+	stack.setAttribute('aria-live','polite')
+	stack.setAttribute('aria-atomic','false')
+	document.body.appendChild(stack)
+	return stack
 }
-__.alertError=(msg,timeout)=>{__.alert(msg,"error",timeout);danger(msg)}
-__.alertSuccess=(msg,timeout)=>{__.alert(msg,"success",timeout);success(msg)}
-__.alertWarning=(msg,timeout)=>{__.alert(msg,"warning",timeout);warn(msg)}
-__.alertInfo=(msg,timeout)=>{__.alert(msg,"info",timeout);info(msg)}
-__.alertClose=()=>__.del(".ps-alert")
+
+__.notificationNormalize=(message,level,timeout,title,detail,visible,meta)=>{
+	let note=message&&typeof message==='object'&&!Array.isArray(message)
+		?Object.assign({},message)
+		:{message,level,timeout,title,detail,visible,meta}
+	let classes=(note.level||note.classes||'info').toString().split(/[, ]/).filter(Boolean)
+	let known=classes.find(c=>/^(success|info|warning|error|danger)$/.test(c))||'info'
+	let parsedTimeout=parseInt(note.timeout,10)
+	note.id=note.id||('psn-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8))
+	note.level=known
+	note.classes=classes
+	note.title=note.title===undefined||note.title===null?'':String(note.title)
+	note.message=note.message===undefined||note.message===null?'':String(note.message)
+	note.detail=note.detail===undefined||note.detail===null?''
+		:typeof note.detail==='string'?note.detail
+		:JSON.stringify(note.detail,null,2)
+	note.timeout=note.timeout===0||note.timeout==='0'
+		?0
+		:(Number.isNaN(parsedTimeout)||parsedTimeout<0?__.config.notificationTimeout:parsedTimeout)
+	note.visible=!(note.visible===false||note.visible==='false'||note.visible===0||note.visible==='0')
+	note.meta=note.meta===undefined?null:note.meta
+	note.createdAt=note.createdAt||Date.now()
+	note.open=true
+	return note
+}
+
+__.notificationPrune=()=>{
+	__.data.notifications=__.data.notifications.filter(n=>n&&n.open)
+	let max=Math.max(1,parseInt(__.config.notificationMaxVisible,10)||6)
+	let visible=__.data.notifications.filter(n=>n.visible&&n.open)
+	if(visible.length>max){
+		visible.slice(0,visible.length-max).forEach(n=>__.notificationClose(n.id))
+	}
+}
+
+__.notificationRender=note=>{
+	if(!note.visible)return
+	let stack=__.notificationEnsureStack()
+	let el=document.createElement('div')
+	el.className='ps-note '+note.classes.join(' ')
+	el.dataset.noteId=note.id
+	el.style.setProperty('--ps-note-time',(note.timeout||__.config.notificationTimeout)+'ms')
+	el.setAttribute('role',/^(error|danger|warning)$/.test(note.level)?'alert':'status')
+	let card=document.createElement('div')
+	card.className='ps-note-card'
+	let head=document.createElement('div')
+	head.className='ps-note-head'
+	let copy=document.createElement('div')
+	copy.className='ps-note-copy'
+	if(note.title){
+		let title=document.createElement('strong')
+		title.className='ps-note-title'
+		title.textContent=note.title
+		copy.appendChild(title)
+	}
+	let msg=document.createElement('div')
+	msg.className='ps-note-msg'
+	msg.textContent=note.message||note.level
+	copy.appendChild(msg)
+	head.appendChild(copy)
+	let close=document.createElement('button')
+	close.className='ps-note-close'
+	close.type='button'
+	close.setAttribute('aria-label','Dismiss notification')
+	close.innerHTML='&times;'
+	close.addEventListener('click',()=>__.notificationClose(note.id))
+	head.appendChild(close)
+	card.appendChild(head)
+	if(note.detail){
+		let details=document.createElement('details')
+		details.className='ps-note-detail'
+		let summary=document.createElement('summary')
+		summary.textContent='Details'
+		let pre=document.createElement('pre')
+		pre.textContent=note.detail
+		details.appendChild(summary)
+		details.appendChild(pre)
+		card.appendChild(details)
+	}
+	el.appendChild(card)
+	stack.appendChild(el)
+	note.el=el
+	if(note.timeout>0)note.timer=setTimeout(()=>__.notificationClose(note.id),note.timeout)
+}
+
+__.notificationClose=id=>{
+	if(!id){
+		__.data.notifications.slice().forEach(n=>__.notificationClose(n.id))
+		return
+	}
+	let note=__.data.notifications.find(n=>n.id===id)
+	if(note){
+		note.open=false
+		if(note.timer)clearTimeout(note.timer)
+	}
+	let el=document.querySelector(`.ps-note[data-note-id="${id}"]`)
+	if(!el){__.notificationPrune();return}
+	el.classList.add('closing')
+	setTimeout(()=>{
+		el.remove()
+		__.notificationPrune()
+	},180)
+}
+
+__.notify=(message,level,timeout,title,detail,visible,meta)=>{
+	let note=__.notificationNormalize(message,level,timeout,title,detail,visible,meta)
+	__.data.notifications.push(note)
+	if(typeof __.config.notificationHandler==='function'){
+		try{__.config.notificationHandler(note)}catch(e){error('notificationHandler failed',e)}
+	}
+	__.notificationRender(note)
+	__.notificationPrune()
+	return note
+}
+__.notifySilent=(message,level,timeout,title,detail,meta)=>
+	message&&typeof message==='object'&&!Array.isArray(message)
+		?__.notify(Object.assign({},message,{visible:false}))
+		:__.notify({message,level,timeout,title,detail,meta,visible:false})
+
+__.alert=(msg,classes,timeout)=>__.notify({message:msg,level:classes,timeout})
+__.alertError=(msg,timeout)=>{__.notify({title:'Error',message:msg,level:'error',timeout});danger(msg)}
+__.alertSuccess=(msg,timeout)=>{__.notify({title:'Success',message:msg,level:'success',timeout});success(msg)}
+__.alertWarning=(msg,timeout)=>{__.notify({title:'Warning',message:msg,level:'warning',timeout});warn(msg)}
+__.alertInfo=(msg,timeout)=>{__.notify({title:'Info',message:msg,level:'info',timeout});info(msg)}
+__.alertClose=id=>__.notificationClose(id)
 
 // upgrade __.error: try .error-msg element first (core behavior), then visual alert
 __.error=(msg,timeout)=>{
 	const em=__.parseErrorResponse(msg)
 	const el=__.el(".error-msg")
 	if(el.length>0){__.text(el,em);__.show(el);setTimeout(()=>__.hide(el),timeout||10000);return}
-	__.alert(em,"error",timeout)
+	__.notify({
+		title:'Request failed',
+		message:em,
+		detail:msg&&msg!==em?msg:'',
+		level:'error',
+		timeout
+	})
 	danger(em)
 }
 

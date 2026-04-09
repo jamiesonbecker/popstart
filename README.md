@@ -360,9 +360,9 @@ For all other elements, a `<template>` child provides the repeating HTML. `{key}
 | `__.scrollTo(selector)` | Smooth-scroll to element |
 | `__.resetForm(selector)` | Reset form to defaults |
 
-### Alerts — Visual Feedback
+### Notifications — Visual Feedback
 
-Styled alert banners. No Bootstrap required. Auto-dismiss after 15s or click close.
+Toast notifications render in a bottom-right stack, write into `__.data.notifications`, support optional technical `detail`, and auto-dismiss with a close button. Existing `__.alert*` helpers now forward into the notification system.
 
 ```html
 <button click="__.post, __.alertSuccess"
@@ -371,15 +371,19 @@ Styled alert banners. No Bootstrap required. Auto-dismiss after 15s or click clo
 
 | Function | Description |
 |----------|-------------|
-| `__.alert(msg [,classes, timeout])` | Show alert banner |
-| `__.alertError(msg [,timeout])` | Red error banner |
-| `__.alertSuccess(msg [,timeout])` | Green success banner |
-| `__.alertWarning(msg [,timeout])` | Yellow warning banner |
-| `__.alertInfo(msg [,timeout])` | Blue info banner |
-| `__.alertClose()` | Dismiss alert |
+| `__.notify(message [,level, timeout, title, detail, visible, meta])` | Create a notification object + optional toast |
+| `__.notifySilent(message [,level, timeout, title, detail, meta])` | Store + hook a notification without showing a toast |
+| `__.alert(msg [,classes, timeout])` | Compatibility wrapper for `__.notify()` |
+| `__.alertError(msg [,timeout])` | Error toast wrapper |
+| `__.alertSuccess(msg [,timeout])` | Success toast wrapper |
+| `__.alertWarning(msg [,timeout])` | Warning toast wrapper |
+| `__.alertInfo(msg [,timeout])` | Info toast wrapper |
+| `__.alertClose([id])` | Dismiss one or all active notifications |
 | `__.timedclass(selector, remove, add [,time])` | Swap classes, revert after time ms (default 2000) |
 
-Extras also upgrades `__.error()` — tries `.error-msg` element first (core behavior), then falls back to a visual error banner.
+Each notification entry uses `{id, level, title, message, detail, visible, timeout, meta, createdAt}` and is pruned from `__.data.notifications` when dismissed or expired. Set `__.config.notificationHandler = function(note){ ... }` for optional side effects such as backend logging.
+
+Extras also upgrades `__.error()` — tries `.error-msg` element first (core behavior), then falls back to an error toast with optional technical detail.
 
 ### Streaming — SSE & WebSocket
 
