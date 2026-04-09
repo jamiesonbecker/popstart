@@ -969,10 +969,10 @@ footer strong{color:var(--accent)}
 /* @end: copycode */
 
 /* @widget: sharemenu */
-.share-wrap{position:relative;display:inline-block}
+.share-wrap{position:relative;display:inline-block;isolation:isolate}
 .share-wrap>.btn{display:inline-flex;visibility:visible;opacity:1}
-.share-dropdown{position:absolute;top:calc(100% + var(--sp-2));left:0;min-width:200px;background:var(--bg2);border:1px solid var(--card-border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:10;overflow:hidden}
-.share-dropdown a{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);color:var(--fg2);transition:all var(--speed);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.share-dropdown{position:absolute;top:calc(100% + var(--sp-2));left:0;min-width:220px;background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 92%,white 8%),var(--bg2));border:1px solid color-mix(in srgb,var(--accent) 18%,var(--card-border));border-radius:var(--radius);box-shadow:0 18px 42px rgba(0,0,0,.24);z-index:24;overflow:hidden}
+.share-dropdown a{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);color:var(--fg);transition:all var(--speed);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit}
 .share-dropdown a:hover{background:var(--bg3);color:var(--fg)}
 /* @end: sharemenu */
 
@@ -4173,7 +4173,7 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
       </div>
       <div id="sharemenu-demo">
         <div class="share-wrap">
-          <button class="btn accent" ps-click="__.toggleNext" debounce="0">&#9733; Share</button>
+          <button class="btn accent" ps-click="toggleShareMenu" debounce="0">&#9733; Share</button>
           <div class="share-dropdown hidden">
             <a href="#" ps-click="__.copy, __.hideClosest" copy-text="https://popstart.org" hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#128279; Copy Link</a>
             <a href="#" ps-click="__.alertInfo, __.hideClosest" alertInfo-msg="Share to Twitter!" hideClosest-match=".share-dropdown" debounce="0" click-prevent-default="true">&#120143; Twitter</a>
@@ -4187,7 +4187,7 @@ document.querySelectorAll('.scrollspy-layout').forEach(widget =&gt; {
         <div class="src-block">
           <div class="src-label">HTML</div>
           <pre><code>&lt;button class="btn accent"
-  <strong style="color:var(--accent)">ps-click="__.toggleNext"</strong>&gt;Share&lt;/button&gt;
+  <strong style="color:var(--accent)">ps-click="toggleShareMenu"</strong>&gt;Share&lt;/button&gt;
 
 &lt;div class="share-dropdown hidden"&gt;
   &lt;a <strong style="color:var(--accent)">ps-click="__.copy, __.hideClosest"</strong>
@@ -19613,6 +19613,24 @@ function chainDemo() {
     }; run()
   })
 }
+
+function toggleShareMenu() {
+  var wrap = this && this.closest ? this.closest('.share-wrap') : null
+  if (!wrap) return
+  var menu = wrap.querySelector('.share-dropdown')
+  if (!menu) return
+  document.querySelectorAll('.share-wrap .share-dropdown').forEach(function(el) {
+    if (el !== menu) el.classList.add('hidden')
+  })
+  menu.classList.toggle('hidden')
+}
+
+document.addEventListener('click', function(ev) {
+  if (ev.target.closest && ev.target.closest('.share-wrap')) return
+  document.querySelectorAll('.share-wrap .share-dropdown').forEach(function(el) {
+    el.classList.add('hidden')
+  })
+})
 
 // ══════════════════════════════════════════════
 // SCROLLSPY — real scroll-position tracking
