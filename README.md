@@ -24,6 +24,10 @@ All four attribute prefixes work: `ps-click` (recommended), `click` (bare), `dat
 
 **For both**: One `<script>` tag. Functions on `window`. Works in any browser. Ship a single HTML file or a full SPA — same API either way.
 
+## Field Notes
+
+Before the module split, read [`FIELDNOTES.md`](/home/jamieson/infra-2026/edgecore/popstart-core/FIELDNOTES.md). It captures the refactor direction, component strategy, live protocol ideas, and recent runtime fixes discussed for this directory.
+
 ## Three Layers
 
 ```html
