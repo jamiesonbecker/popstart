@@ -41,6 +41,27 @@ Before the module split, read [`FIELDNOTES.md`](/home/jamieson/infra-2026/edgeco
 <script src="popstart-plugins.js"></script>
 ```
 
+### Strict-CSP option for extras
+
+Extras' notification toasts are styled by an inline `<style>` element
+that the IIFE injects at load time. Apps with strict
+`Content-Security-Policy: style-src 'self'` (no `'unsafe-inline'`)
+will block this injection. Two options:
+
+1. **Externalize the styles** (preferred). Ship `popstart-extras.css`
+   alongside the JS and reference it before extras loads:
+
+   ```html
+   <link id="ps-notify-styles" rel="stylesheet" href="popstart-extras.css">
+   <script src="popstart-extras.js"></script>
+   ```
+
+   Extras detects the `id="ps-notify-styles"` link and skips its inline
+   injection so no CSP violation occurs.
+
+2. **Loosen the CSP** to `style-src 'self' 'unsafe-inline'` if you
+   prefer the script-tag-only setup.
+
 **Core** is all you need for event handling and DOM manipulation. **Extras** adds the things real apps need — API calls, form scraping, list rendering, streaming, visual alerts, cookies, storage — without writing any of that boilerplate yourself. **Plugins** is the distribution layer — drop `use="router"` on any element and Popstart lazy-loads the router module, its CSS, and its HTML templates automatically.
 
 ## Demo Server

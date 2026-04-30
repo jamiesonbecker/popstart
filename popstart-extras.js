@@ -167,8 +167,17 @@ __.data.notifications=Array.isArray(__.data.notifications)?__.data.notifications
 __.data.notificationListeners=Array.isArray(__.data.notificationListeners)?__.data.notificationListeners:[]
 
 ;(()=>{
+	// Skip the inline-style injection when:
+	//  - the styles have already been injected (id `ps-notify-style`), OR
+	//  - the host page provides them via an external stylesheet whose
+	//    <link> element carries id `ps-notify-styles`. The latter lets
+	//    apps with strict CSP `style-src 'self'` (no `unsafe-inline`)
+	//    serve `popstart-extras.css` directly instead of letting this
+	//    IIFE create an inline <style> element that the CSP would
+	//    block. See README.md for the recommended <link> snippet.
 	const id='ps-notify-style'
 	if(document.getElementById(id))return
+	if(document.getElementById('ps-notify-styles'))return
 	const s=document.createElement('style')
 	s.id=id
 	s.textContent=`
